@@ -137,24 +137,29 @@ const SectionHeader = ({ title, subtitle, center = true }) => (
 );
 
 const ServiceCard = ({ icon: Icon, title, description }) => (
-  <div className="group relative p-8 bg-slate-800/50 backdrop-blur-sm border border-slate-700 hover:border-sky-500/50 rounded-2xl transition-all duration-300 hover:-translate-y-2 hover:shadow-xl hover:shadow-sky-500/10 overflow-hidden reveal-on-scroll">
-    <div className="absolute inset-0 bg-gradient-to-br from-sky-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-    <div className="relative z-10">
-      <div className="w-14 h-14 bg-slate-900 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-slate-700 group-hover:border-sky-500/30">
-        <Icon className="w-7 h-7 text-sky-400 group-hover:text-indigo-400 transition-colors" />
+  <div className="service-card rounded-2xl p-8 transition-all reveal-on-scroll">
+      <div className="w-12 h-12 mb-6 rounded-xl flex items-center justify-center service-icon">
+        <Icon className="w-6 h-6" />
       </div>
-      <h3 className="text-xl font-bold text-white mb-3">{title}</h3>
-      <p className="text-slate-400 leading-relaxed">{description}</p>
+
+      <h3 className="text-xl font-semibold mb-3 service-title">
+        {title}
+      </h3>
+
+      <p className="service-description leading-relaxed">
+        {description}
+      </p>
     </div>
-  </div>
 );
 
 const StatCard = ({ number, label }) => (
-  <div className="text-center p-6 bg-slate-800/30 rounded-2xl border border-slate-700/50 hover:border-sky-500/30 transition-all reveal-on-scroll">
-    <div className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-400 mb-2">
+  <div className="stat-card text-center p-6 rounded-2xl transition-all">
+    <div className="text-4xl font-extrabold text-sky-400">
       {number}
     </div>
-    <div className="text-slate-400 font-medium">{label}</div>
+    <p className="mt-2 text-sm font-medium text-slate-500">
+      {label}
+    </p>
   </div>
 );
 
@@ -174,11 +179,28 @@ const NavLink = ({ href, children, mobile = false, onClick }) => (
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
-const [theme, setTheme] = useState('dark');
 
 useEffect(() => {
-  document.documentElement.classList.toggle('light', theme === 'light');
-}, [theme]);
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+
+  const applyTheme = (e) => {
+    if (e.matches) {
+      document.documentElement.classList.add('light');
+    } else {
+      document.documentElement.classList.remove('light');
+    }
+  };
+
+  // Initial check
+  applyTheme(mediaQuery);
+
+  // Listen for system changes
+  mediaQuery.addEventListener('change', applyTheme);
+
+  return () => {
+    mediaQuery.removeEventListener('change', applyTheme);
+  };
+}, []);
 
   // Intersection Observer for Scroll Animations
   useEffect(() => {
@@ -217,15 +239,27 @@ useEffect(() => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
-            <div className="flex-shrink-0 flex items-center gap-2 cursor-pointer">
-              <div className="w-10 h-10 bg-gradient-to-br from-sky-500 to-indigo-600 rounded-lg flex items-center justify-center transform rotate-3">
-                <Code className="text-white w-6 h-6" />
-              </div>
-<span className="text-2xl font-bold tracking-tight">
-  DEV<span className="text-sky-500">NEXA</span>
-</span>
-            </div>
-            
+<div className="flex-shrink-0 flex items-center gap-3 cursor-pointer">
+  <div className="w-12 h-12 flex items-center justify-center">
+    <img
+      src="/logo.png"
+      alt="DevNexa Logo"
+      className="w-full h-full object-contain drop-shadow-lg"
+    />
+  </div>
+
+   {/* Brand Text */}
+  <span
+    className="
+      text-2xl font-extrabold tracking-tight
+      bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-600
+      bg-clip-text text-transparent
+    "
+  >
+    DEVNEXA
+  </span>
+</div>
+
             {/* Desktop Menu */}
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-8">
@@ -238,14 +272,7 @@ useEffect(() => {
                 </a>
               </div>
             </div>
-<button
-  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-  className="px-4 py-2 rounded-full border transition-all
-bg-[var(--card)] text-[var(--text)] border-[var(--border)]"
 
->
-  {theme === 'dark' ? 'Light Mode ' : 'Dark Mode '}
-</button>
 
             {/* Mobile menu button */}
             <div className="md:hidden">
@@ -317,17 +344,18 @@ Empowering your business with cutting-edge development solutions. From app devel
                 alt="Team Collaboration" 
                 className="relative rounded-2xl shadow-2xl border border-slate-700"
               />
-              <div className="absolute -bottom-6 -right-6 bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl hidden md:block">
-                <div className="flex items-center gap-4">
-                  <div className="bg-green-500/20 p-3 rounded-full">
-                    <CheckCircle2 className="w-8 h-8 text-green-400" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-white">5+ Years</div>
-                    <div className="text-slate-400 text-sm">Experience</div>
-                  </div>
-                </div>
-              </div>
+              <div className="experience-card absolute -bottom-6 -right-6 p-6 rounded-xl border shadow-xl hidden md:block">
+  <div className="flex items-center gap-4">
+    <div className="bg-green-500/20 p-3 rounded-full">
+      <CheckCircle2 className="w-8 h-8 text-green-500" />
+    </div>
+    <div>
+      <div className="text-2xl font-bold experience-title">5+ Years</div>
+      <div className="experience-subtitle text-sm">Experience</div>
+    </div>
+  </div>
+</div>
+
             </div>
             
             <div className="reveal-on-scroll">
@@ -368,7 +396,7 @@ Empowering your business with cutting-edge development solutions. From app devel
       </section>
 
       {/* Stats Section */}
-      <section className="py-12 border-y border-slate-800 bg-slate-900/50">
+<section className="py-12 border-y border-slate-800 bg-transparent">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <StatCard number="150+" label="Projects Delivered" />
@@ -431,40 +459,49 @@ Empowering your business with cutting-edge development solutions. From app devel
           />
 
           {/* Filter Tabs */}
-          <div className="flex justify-center gap-4 mb-12 flex-wrap reveal-on-scroll">
-            {['all', 'web', 'app', 'branding'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
-                  activeTab === tab 
-                    ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/25' 
-                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white'
-                }`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
-          </div>
+<div className="flex justify-center gap-4 mb-12 flex-wrap reveal-on-scroll">
+  {['all', 'web', 'app', 'branding'].map((tab) => (
+    <button
+      key={tab}
+      onClick={() => setActiveTab(tab)}
+      className={`filter-tab px-6 py-2 rounded-full text-sm font-medium transition-all ${
+        activeTab === tab ? 'filter-tab-active' : ''
+      }`}
+    >
+      {tab.charAt(0).toUpperCase() + tab.slice(1)}
+    </button>
+  ))}
+</div>
+
 
           {/* Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {filteredPortfolio.map((item) => (
-              <div key={item.id} className="group relative rounded-2xl overflow-hidden cursor-pointer reveal-on-scroll">
-                <div className="aspect-video w-full overflow-hidden">
-                  <img 
-                    src={item.img} 
-                    alt={item.title} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-8">
-                  <h3 className="text-2xl font-bold text-white mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">{item.title}</h3>
-                  <p className="text-sky-400 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75">{item.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+  {filteredPortfolio.map((item) => (
+    <div
+      key={item.id}
+      className="group relative rounded-2xl overflow-hidden cursor-pointer reveal-on-scroll"
+    >
+      <div className="aspect-video w-full overflow-hidden">
+        <img
+          src={item.img}
+          alt={item.title}
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+        />
+      </div>
+
+      {/* Overlay */}
+      <div className="portfolio-overlay absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-8">
+        <h3 className="portfolio-title text-2xl font-bold mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+          {item.title}
+        </h3>
+        <p className="portfolio-desc translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75">
+          {item.desc}
+        </p>
+      </div>
+    </div>
+  ))}
+</div>
+
           
           <div className="mt-12 text-center reveal-on-scroll">
              <button className="text-slate-300 hover:text-white font-medium border-b border-sky-500 pb-1">View All Projects</button>
@@ -499,7 +536,7 @@ Empowering your business with cutting-edge development solutions. From app devel
               
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-sky-400">
+<div className="icon-circle w-12 h-12 rounded-full flex items-center justify-center text-sky-400">
                     <Mail />
                   </div>
                   <div>
@@ -508,7 +545,7 @@ Empowering your business with cutting-edge development solutions. From app devel
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-sky-400">
+<div className="icon-circle w-12 h-12 rounded-full flex items-center justify-center text-sky-400">
                     <Smartphone />
                   </div>
                   <div>
@@ -517,7 +554,7 @@ Empowering your business with cutting-edge development solutions. From app devel
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-sky-400">
+<div className="icon-circle w-12 h-12 rounded-full flex items-center justify-center text-sky-400">
                     <Globe />
                   </div>
                   <div>
@@ -528,9 +565,9 @@ Empowering your business with cutting-edge development solutions. From app devel
               </div>
 
               <div className="flex gap-4 mt-10">
-                <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-sky-500 hover:text-white transition-all"><Twitter className="w-5 h-5"/></a>
-                <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-sky-500 hover:text-white transition-all"><Linkedin className="w-5 h-5"/></a>
-                <a href="#" className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-sky-500 hover:text-white transition-all"><Github className="w-5 h-5"/></a>
+                <a href="#" className="icon-circle w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-all"><Twitter className="w-5 h-5"/></a>
+                <a href="#" className="icon-circle w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-all"><Linkedin className="w-5 h-5"/></a>
+                <a href="#" className="icon-circle w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-all"><Github className="w-5 h-5"/></a>
               </div>
             </div>
 
@@ -595,6 +632,19 @@ Empowering your business with cutting-edge development solutions. From app devel
     --scroll-track: #0f172a;
     --scroll-thumb: #334155;
   }
+/* NAVBAR LIGHT MODE FIX */
+.light nav {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.light nav a {
+  color: #0f172a !important;
+}
+
+.light nav a:hover {
+  color: #2563eb !important;
+}
 
   /* LIGHT THEME */
   .light {
@@ -745,6 +795,245 @@ body {
   background-color: #ffffff !important;
   color: var(--text) !important;
   border-color: var(--border) !important;
+}
+
+/* ================================
+   STAT CARDS – THEME PERFECT
+================================ */
+
+/* ================================
+   STAT CARDS – FINAL THEME FIX
+================================ */
+
+/* DARK MODE (DEFAULT) */
+.stat-card {
+  background-color: #0f172a; /* slate-900 */
+  border: 1px solid #1e293b; /* slate-800 */
+  box-shadow: none;
+}
+
+/* LIGHT MODE – PURE WHITE + SHADOW */
+.light .stat-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow:
+    0 10px 25px rgba(15, 23, 42, 0.08),
+    0 4px 10px rgba(15, 23, 42, 0.05);
+}
+
+/* Hover effect (both themes) */
+.stat-card:hover {
+  transform: translateY(-6px);
+}
+
+/* Hover glow (light mode only) */
+.light .stat-card:hover {
+  box-shadow:
+    0 18px 40px rgba(56, 189, 248, 0.18),
+    0 8px 20px rgba(15, 23, 42, 0.08);
+  border-color: #38bdf8;
+}
+/* ================================
+   EXPERIENCE FLOATING CARD
+================================ */
+
+/* DARK MODE (default) */
+.experience-card {
+  background-color: #1e293b; /* slate-800 */
+  border: 1px solid #334155; /* slate-700 */
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+
+.experience-title {
+  color: #ffffff;
+}
+
+.experience-subtitle {
+  color: #94a3b8; /* slate-400 */
+}
+
+/* LIGHT MODE */
+.light .experience-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow:
+    0 14px 35px rgba(15, 23, 42, 0.12),
+    0 6px 14px rgba(15, 23, 42, 0.08);
+}
+
+.light .experience-title {
+  color: #0f172a;
+}
+
+.light .experience-subtitle {
+  color: #475569;
+}
+
+/* ================================
+   SERVICE CARDS – THEME PERFECT
+================================ */
+
+/* DARK MODE (default) */
+.service-card {
+  background-color: #1e293b; /* slate-800 */
+  border: 1px solid #334155;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.service-title {
+  color: #ffffff;
+}
+
+.service-description {
+  color: #94a3b8; /* slate-400 */
+}
+
+.service-icon {
+  background-color: #020617; /* slate-950 */
+  color: #38bdf8;
+}
+
+/* LIGHT MODE */
+.light .service-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow:
+    0 16px 40px rgba(15, 23, 42, 0.12),
+    0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+.light .service-title {
+  color: #0f172a;
+}
+
+.light .service-description {
+  color: #475569;
+}
+
+.light .service-icon {
+  background-color: #f8fafc;
+  color: #0ea5e9;
+}
+
+/* Hover polish */
+.service-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 55px rgba(56, 189, 248, 0.25);
+  border-color: #38bdf8;
+}
+/* ================================
+   FILTER TABS – THEME PERFECT
+================================ */
+
+/* DEFAULT (Dark Mode) */
+.filter-tab {
+  background-color: #1e293b; /* slate-800 */
+  color: #94a3b8; /* slate-400 */
+  border: 1px solid #334155;
+}
+
+.filter-tab:hover {
+  background-color: #334155;
+  color: #ffffff;
+}
+
+/* ACTIVE TAB (Both Themes) */
+.filter-tab-active {
+  background: linear-gradient(to right, #0ea5e9, #6366f1);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 10px 30px rgba(56, 189, 248, 0.35);
+}
+
+/* LIGHT MODE */
+.light .filter-tab {
+  background-color: #ffffff;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.light .filter-tab:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Light mode active stays brand */
+.light .filter-tab-active {
+  background: linear-gradient(to right, #0ea5e9, #6366f1);
+  color: #ffffff;
+  box-shadow: 0 12px 35px rgba(56, 189, 248, 0.35);
+}
+
+/* ================================
+   PORTFOLIO OVERLAY – THEME SAFE
+================================ */
+
+/* Text stays SAME in both themes */
+.portfolio-title {
+  color: #ffffff;
+}
+
+.portfolio-desc {
+  color: #38bdf8; /* sky-400 */
+}
+
+/* Dark Mode Overlay */
+.portfolio-overlay {
+  background: linear-gradient(
+    to top,
+    rgba(15, 23, 42, 0.95),
+    rgba(15, 23, 42, 0.85),
+    transparent
+  );
+}
+
+/* Light Mode Overlay */
+.light .portfolio-overlay {
+  background: linear-gradient(
+    to top,
+    rgba(15, 23, 42, 0.85),
+    rgba(15, 23, 42, 0.65),
+    transparent
+  );
+}
+
+/* ================================
+   ICON CIRCLES – BORDER + SHADOW
+================================ */
+
+/* Default (Dark Theme) */
+.icon-circle {
+  background-color: #1e293b; /* slate-800 */
+  border: 1px solid rgba(148, 163, 184, 0.15); /* subtle slate border */
+  box-shadow:
+    0 0 0 1px rgba(148, 163, 184, 0.08),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: 
+    background-color 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.3s ease;
+}
+
+/* Light Theme */
+.light .icon-circle {
+  background-color: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.08),
+    0 10px 30px rgba(15, 23, 42, 0.15);
+}
+
+/* Hover – Brand Glow */
+.icon-circle:hover {
+  background-color: #0ea5e9; /* sky-500 */
+  border-color: rgba(14, 165, 233, 0.6);
+  box-shadow:
+    0 0 0 3px rgba(14, 165, 233, 0.35), /* circular glow ring */
+    0 12px 40px rgba(14, 165, 233, 0.45);
+  color: #ffffff !important;
+  transform: translateY(-2px);
 }
 
 
