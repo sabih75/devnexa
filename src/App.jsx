@@ -182,26 +182,58 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
 const form = useRef();
+const verifyEmailAPI = async (email) => {
+  const response = await fetch(`https://api.mailboxlayer.com/check?access_key=YOUR_KEY&email=${email}`);
+  const data = await response.json();
+  return data.format_valid && data.mx_found && data.smtp_check;
+};
 
-const sendEmail = (e) => {
+const sendEmail = async (e) => {
   e.preventDefault();
 
-  emailjs
-    .sendForm(
-      "service_devnexa",
-      "template_6ca97nb",
-      form.current,
-      "O3sDnGpVcn78rGBN1"
-    )
-    .then(
-      () => {
-        alert("Message sent successfully!");
-        form.current.reset();
-      },
-      () => {
-        alert("Failed to send message");
-      }
+  const emailValue = form.current.user_email.value.trim();
+
+  // 1️⃣ Basic format check
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(emailValue)) {
+    alert("Please enter a valid email format.");
+    return;
+  }
+
+  try {
+    // 2️⃣ Verify email existence using API
+    const response = await fetch(
+      `https://emailvalidation.abstractapi.com/v1/?api_key=YOUR_API_KEY&email=${emailValue}`
     );
+    const data = await response.json();
+
+    if (!data.is_valid_format.value || !data.deliverability || data.is_disposable_email.value) {
+      alert("Please enter a real, valid email address.");
+      return;
+    }
+
+    // 3️⃣ If email is valid, send via EmailJS
+    emailjs
+      .sendForm(
+        "service_devnexa",
+        "template_6ca97nb",
+        form.current,
+        "O3sDnGpVcn78rGBN1"
+      )
+      .then(
+        () => {
+          alert("Message sent successfully!");
+          form.current.reset();
+        },
+        () => {
+          alert("Failed to send message");
+        }
+      );
+
+  } catch (error) {
+    console.error("Email verification failed:", error);
+    alert("Error verifying email. Please try again later.");
+  }
 };
 
 useEffect(() => {
