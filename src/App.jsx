@@ -307,7 +307,8 @@ useEffect(() => {
             <h1 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-6 leading-tight">
               Unleash Your
 Creativity with<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-400">
+              <span className="text-transparent bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-600
+      bg-clip-text text-transparent">
                 DevNexa              </span>
             </h1>
             <p className="mt-4 max-w-2xl mx-auto text-xl text-slate-400 mb-10">
@@ -566,7 +567,7 @@ Empowering your business with cutting-edge development solutions. From app devel
 
               <div className="flex gap-4 mt-10">
                 <a href="#" className="icon-circle w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-all"><Twitter className="w-5 h-5"/></a>
-                <a href="#" className="icon-circle w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-all"><Linkedin className="w-5 h-5"/></a>
+                <a href="https://www.linkedin.com/company/99885845/admin/dashboard/" className="icon-circle w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-all"><Linkedin className="w-5 h-5"/></a>
                 <a href="#" className="icon-circle w-10 h-10 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-all"><Github className="w-5 h-5"/></a>
               </div>
             </div>
