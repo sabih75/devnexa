@@ -88,7 +88,6 @@ const material = new window.THREE.PointsMaterial({
       };
       
       document.addEventListener('mousemove', handleMouseMove);
-const form = useRef();
 
       // Animation Loop
       const animate = () => {
@@ -211,54 +210,6 @@ const sendEmail = async (e) => {
 
 
 
-
-// const sendEmail = async (e) => {
-//   e.preventDefault();
-
-//   const emailValue = form.current.user_email.value.trim();
-
-//   // 1️⃣ Basic format check
-//   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-//   if (!emailRegex.test(emailValue)) {
-//     alert("Please enter a valid email format.");
-//     return;
-//   }
-
-//   try {
-//     // 2️⃣ Verify email existence using API
-//     const response = await fetch(
-//       `https://emailvalidation.abstractapi.com/v1/?api_key=0419e2a4dfaa4cf294ed2aedbca2ec1b&email=${emailValue}`
-//     );
-//     const data = await response.json();
-
-//     if (!data.is_valid_format.value || !data.deliverability || data.is_disposable_email.value) {
-//       alert("Please enter a real, valid email address.");
-//       return;
-//     }
-
-//     // 3️⃣ If email is valid, send via EmailJS
-//     emailjs
-//       .sendForm(
-//         "service_devnexa",
-//         "template_6ca97nb",
-//         form.current,
-//         "O3sDnGpVcn78rGBN1"
-//       )
-//       .then(
-//         () => {
-//           alert("Message sent successfully!");
-//           form.current.reset();
-//         },
-//         () => {
-//           alert("Failed to send message");
-//         }
-//       );
-
-//   } catch (error) {
-//     console.error("Email verification failed:", error);
-//     alert("Error verifying email. Please try again later.");
-//   }
-// };
 
 useEffect(() => {
   const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
