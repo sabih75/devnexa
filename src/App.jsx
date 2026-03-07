@@ -90,26 +90,6 @@ const material = new window.THREE.PointsMaterial({
       document.addEventListener('mousemove', handleMouseMove);
 const form = useRef();
 
-  const sendEmail = (e) => {
-    e.preventDefault();
-
-    emailjs
-      .sendForm(
-        "service_devnexa",     // your service ID
-        "template_6ca97nb",    // your template ID
-        form.current,
-        "O3sDnGpVcn78rGBN1"    // your public key
-      )
-      .then(
-        (result) => {
-          alert("Message sent successfully!");
-          form.current.reset();
-        },
-        (error) => {
-          alert("Failed to send message");
-        }
-      );
-  };
       // Animation Loop
       const animate = () => {
         animationId = requestAnimationFrame(animate);
@@ -212,6 +192,29 @@ useEffect(() => {
       document.documentElement.classList.remove('light');
     }
   };
+  const form = useRef();
+
+const sendEmail = (e) => {
+  e.preventDefault();
+
+  emailjs
+    .sendForm(
+      "service_devnexa",
+      "template_6ca97nb",
+      form.current,
+      "O3sDnGpVcn78rGBN1"
+    )
+    .then(
+      () => {
+        alert("Message sent successfully!");
+        form.current.reset();
+      },
+      () => {
+        alert("Failed to send message");
+      }
+    );
+};
+
 
   // Initial check
   applyTheme(mediaQuery);
@@ -594,34 +597,67 @@ Empowering your business with cutting-edge development solutions. From app devel
               </div>
             </div>
 
-            <form className="bg-slate-900 p-8 rounded-2xl border border-slate-800 reveal-on-scroll">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="block text-slate-400 mb-2 text-sm">Name</label>
-                  <input type="text" className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:border-sky-500 focus:outline-none transition-colors" placeholder="John Doe" />
-                </div>
-                <div>
-                  <label className="block text-slate-400 mb-2 text-sm">Email</label>
-                  <input type="email" className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:border-sky-500 focus:outline-none transition-colors" placeholder="john@example.com" />
-                </div>
-              </div>
-              <div className="mb-6">
-                <label className="block text-slate-400 mb-2 text-sm">Subject</label>
-                <select className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:border-sky-500 focus:outline-none transition-colors">
-                  <option>Web Development</option>
-                  <option>Mobile App</option>
-                  <option>Branding</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div className="mb-6">
-                <label className="block text-slate-400 mb-2 text-sm">Message</label>
-                <textarea rows="4" className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:border-sky-500 focus:outline-none transition-colors" placeholder="Tell us about your project..."></textarea>
-              </div>
-              <button className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold py-4 rounded-lg hover:shadow-lg hover:shadow-sky-500/25 transition-all" onClick={()=>sendEmail()}>
-                Send Message
-              </button>
-            </form>
+            <form
+  ref={form}
+  onSubmit={sendEmail}
+  className="bg-slate-900 p-8 rounded-2xl border border-slate-800 reveal-on-scroll"
+>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div>
+      <label className="block text-slate-400 mb-2 text-sm">Name</label>
+      <input
+        type="text"
+        name="user_name"
+        required
+        className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:border-sky-500 focus:outline-none transition-colors"
+        placeholder="John Doe"
+      />
+    </div>
+
+    <div>
+      <label className="block text-slate-400 mb-2 text-sm">Email</label>
+      <input
+        type="email"
+        name="user_email"
+        required
+        className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:border-sky-500 focus:outline-none transition-colors"
+        placeholder="john@example.com"
+      />
+    </div>
+  </div>
+
+  <div className="mb-6">
+    <label className="block text-slate-400 mb-2 text-sm">Subject</label>
+    <select
+      name="subject"
+      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:border-sky-500 focus:outline-none transition-colors"
+    >
+      <option>Web Development</option>
+      <option>Mobile App</option>
+      <option>Branding</option>
+      <option>Other</option>
+    </select>
+  </div>
+
+  <div className="mb-6">
+    <label className="block text-slate-400 mb-2 text-sm">Message</label>
+    <textarea
+      rows="4"
+      name="message"
+      required
+      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:border-sky-500 focus:outline-none transition-colors"
+      placeholder="Tell us about your project..."
+    ></textarea>
+  </div>
+
+  <button
+    type="submit"
+    className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold py-4 rounded-lg hover:shadow-lg hover:shadow-sky-500/25 transition-all"
+  >
+    Send Message
+  </button>
+</form>
+
           </div>
         </div>
       </section>
