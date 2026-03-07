@@ -1,10 +1,13 @@
+// /api/send-email.js
 import nodemailer from "nodemailer";
 
 export default async function handler(req, res) {
+  // Only allow POST requests
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
+  // Get data from the request body
   const { name, email, subject, message } = req.body;
 
   if (!name || !email || !subject || !message) {
@@ -12,6 +15,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Create transporter
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -20,6 +24,7 @@ export default async function handler(req, res) {
       },
     });
 
+    // Send mail
     await transporter.sendMail({
       from: email,
       to: process.env.GMAIL_USER,
