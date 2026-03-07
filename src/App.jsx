@@ -181,18 +181,7 @@ const NavLink = ({ href, children, mobile = false, onClick }) => (
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
-
-useEffect(() => {
-  const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
-
-  const applyTheme = (e) => {
-    if (e.matches) {
-      document.documentElement.classList.add('light');
-    } else {
-      document.documentElement.classList.remove('light');
-    }
-  };
-  const form = useRef();
+const form = useRef();
 
 const sendEmail = (e) => {
   e.preventDefault();
@@ -215,6 +204,17 @@ const sendEmail = (e) => {
     );
 };
 
+useEffect(() => {
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+
+  const applyTheme = (e) => {
+    if (e.matches) {
+      document.documentElement.classList.add('light');
+    } else {
+      document.documentElement.classList.remove('light');
+    }
+  };
+  
 
   // Initial check
   applyTheme(mediaQuery);
@@ -652,7 +652,7 @@ Empowering your business with cutting-edge development solutions. From app devel
 
   <button
     type="submit"
-    className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold py-4 rounded-lg hover:shadow-lg hover:shadow-sky-500/25 transition-all"
+    className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold py-4 rounded-lg hover:shadow-lg hover:shadow-sky-500/25 transition-all" onClick={(e)=> sendEmail(e)}
   >
     Send Message
   </button>
