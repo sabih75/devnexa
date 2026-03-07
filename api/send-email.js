@@ -1,11 +1,11 @@
 import nodemailer from "nodemailer";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
-  }
+//   if (req.method !== "POST") {
+//     return res.status(405).json({ message: "Method not allowed" });
+//   }
 
-  const { name, email, subject, message } = req.body;
+//   const { name, email, subject, message } = req.body;
 
   try {
     const transporter = nodemailer.createTransport({
