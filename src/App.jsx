@@ -182,11 +182,7 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
 const form = useRef();
-const verifyEmailAPI = async (email) => {
-  const response = await fetch(`https://api.mailboxlayer.com/check?access_key=YOUR_KEY&email=${email}`);
-  const data = await response.json();
-  return data.format_valid && data.mx_found && data.smtp_check;
-};
+
 
 const sendEmail = async (e) => {
   e.preventDefault();
@@ -203,7 +199,7 @@ const sendEmail = async (e) => {
   try {
     // 2️⃣ Verify email existence using API
     const response = await fetch(
-      `https://emailvalidation.abstractapi.com/v1/?api_key=YOUR_API_KEY&email=${emailValue}`
+      `https://emailvalidation.abstractapi.com/v1/?api_key=0419e2a4dfaa4cf294ed2aedbca2ec1b&email=${emailValue}`
     );
     const data = await response.json();
 
