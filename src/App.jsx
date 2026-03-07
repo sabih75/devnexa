@@ -203,53 +203,53 @@ const handleSubmit = async (e) => {
 };
 
 
-const sendEmail = async (e) => {
-  e.preventDefault();
+// const sendEmail = async (e) => {
+//   e.preventDefault();
 
-  const emailValue = form.current.user_email.value.trim();
+//   const emailValue = form.current.user_email.value.trim();
 
-  // 1️⃣ Basic format check
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(emailValue)) {
-    alert("Please enter a valid email format.");
-    return;
-  }
+//   // 1️⃣ Basic format check
+//   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//   if (!emailRegex.test(emailValue)) {
+//     alert("Please enter a valid email format.");
+//     return;
+//   }
 
-  try {
-    // 2️⃣ Verify email existence using API
-    const response = await fetch(
-      `https://emailvalidation.abstractapi.com/v1/?api_key=0419e2a4dfaa4cf294ed2aedbca2ec1b&email=${emailValue}`
-    );
-    const data = await response.json();
+//   try {
+//     // 2️⃣ Verify email existence using API
+//     const response = await fetch(
+//       `https://emailvalidation.abstractapi.com/v1/?api_key=0419e2a4dfaa4cf294ed2aedbca2ec1b&email=${emailValue}`
+//     );
+//     const data = await response.json();
 
-    if (!data.is_valid_format.value || !data.deliverability || data.is_disposable_email.value) {
-      alert("Please enter a real, valid email address.");
-      return;
-    }
+//     if (!data.is_valid_format.value || !data.deliverability || data.is_disposable_email.value) {
+//       alert("Please enter a real, valid email address.");
+//       return;
+//     }
 
-    // 3️⃣ If email is valid, send via EmailJS
-    emailjs
-      .sendForm(
-        "service_devnexa",
-        "template_6ca97nb",
-        form.current,
-        "O3sDnGpVcn78rGBN1"
-      )
-      .then(
-        () => {
-          alert("Message sent successfully!");
-          form.current.reset();
-        },
-        () => {
-          alert("Failed to send message");
-        }
-      );
+//     // 3️⃣ If email is valid, send via EmailJS
+//     emailjs
+//       .sendForm(
+//         "service_devnexa",
+//         "template_6ca97nb",
+//         form.current,
+//         "O3sDnGpVcn78rGBN1"
+//       )
+//       .then(
+//         () => {
+//           alert("Message sent successfully!");
+//           form.current.reset();
+//         },
+//         () => {
+//           alert("Failed to send message");
+//         }
+//       );
 
-  } catch (error) {
-    console.error("Email verification failed:", error);
-    alert("Error verifying email. Please try again later.");
-  }
-};
+//   } catch (error) {
+//     console.error("Email verification failed:", error);
+//     alert("Error verifying email. Please try again later.");
+//   }
+// };
 
 useEffect(() => {
   const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
@@ -699,7 +699,7 @@ Empowering your business with cutting-edge development solutions. From app devel
 
   <button
     type="submit"
-    className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold py-4 rounded-lg hover:shadow-lg hover:shadow-sky-500/25 transition-all" onClick={(e)=> handleSubmit(e)}
+    className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold py-4 rounded-lg hover:shadow-lg hover:shadow-sky-500/25 transition-all" onClick={(e)=> handleSubmit}
   >
     Send Message
   </button>
