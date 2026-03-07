@@ -182,6 +182,25 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
 const form = useRef();
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const data = {
+    name: form.current.user_name.value,
+    email: form.current.user_email.value,
+    subject: form.current.subject.value,
+    message: form.current.message.value,
+  };
+
+  const res = await fetch("/api/send-email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  const result = await res.json();
+  alert(result.message);
+};
 
 
 const sendEmail = async (e) => {
@@ -680,7 +699,7 @@ Empowering your business with cutting-edge development solutions. From app devel
 
   <button
     type="submit"
-    className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold py-4 rounded-lg hover:shadow-lg hover:shadow-sky-500/25 transition-all" onClick={(e)=> sendEmail(e)}
+    className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold py-4 rounded-lg hover:shadow-lg hover:shadow-sky-500/25 transition-all" onClick={(e)=> handleSubmit(e)}
   >
     Send Message
   </button>
