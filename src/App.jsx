@@ -185,21 +185,21 @@ const form = useRef();
 const handleSubmit = async (e) => {
   e.preventDefault();
 
-  const data = {
-    name: form.current.user_name.value,
-    email: form.current.user_email.value,
-    subject: form.current.subject.value,
-    message: form.current.message.value,
-  };
+  // const data = {
+  //   name: form.current.user_name.value,
+  //   email: form.current.user_email.value,
+  //   subject: form.current.subject.value,
+  //   message: form.current.message.value,
+  // };
 
-  const res = await fetch("/api/send-email", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
+  // const res = await fetch("/api/send-email", {
+  //   method: "POST",
+  //   headers: { "Content-Type": "application/json" },
+  //   body: JSON.stringify(data),
+  // });
 
-  const result = await res.json();
-  alert(result.message);
+  // const result = await res.json();
+  // alert(result.message);
 };
 
 
