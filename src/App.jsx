@@ -184,23 +184,29 @@ export default function App() {
 const form = useRef();
 const handleSubmit = async (e) => {
   e.preventDefault();
+  const formData = {
+    name: form.current.user_name.value,
+    email: form.current.user_email.value,
+    subject: form.current.subject.value,
+    message: form.current.message.value,
+  };
 
-  // const data = {
-  //   name: form.current.user_name.value,
-  //   email: form.current.user_email.value,
-  //   subject: form.current.subject.value,
-  //   message: form.current.message.value,
-  // };
+  try {
+    const res = await fetch("/api/send-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
 
-  // const res = await fetch("/api/send-email", {
-  //   method: "POST",
-  //   headers: { "Content-Type": "application/json" },
-  //   body: JSON.stringify(data),
-  // });
-
-  // const result = await res.json();
-  // alert(result.message);
+    const data = await res.json();
+    alert(data.message);
+    if (res.ok) form.current.reset();
+  } catch (err) {
+    alert("Failed to send message");
+    console.error(err);
+  }
 };
+
 
 
 // const sendEmail = async (e) => {
