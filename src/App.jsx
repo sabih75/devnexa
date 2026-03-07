@@ -182,8 +182,10 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
 const form = useRef();
-const handleSubmit = async (e) => {
+
+const sendEmail = async (e) => {
   e.preventDefault();
+
   const formData = {
     name: form.current.user_name.value,
     email: form.current.user_email.value,
@@ -206,6 +208,7 @@ const handleSubmit = async (e) => {
     console.error(err);
   }
 };
+
 
 
 
@@ -705,7 +708,7 @@ Empowering your business with cutting-edge development solutions. From app devel
 
   <button
     type="submit"
-    className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold py-4 rounded-lg hover:shadow-lg hover:shadow-sky-500/25 transition-all" onClick={(e)=> handleSubmit}
+    className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold py-4 rounded-lg hover:shadow-lg hover:shadow-sky-500/25 transition-all" 
   >
     Send Message
   </button>

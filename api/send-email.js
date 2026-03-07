@@ -37,4 +37,4 @@ export default async function handler(req, res) {
     console.error("Error sending email:", error);
     return res.status(500).json({ message: "Failed to send message", error: error.message });
   }
-}
+}    
