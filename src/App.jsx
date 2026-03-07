@@ -16,6 +16,7 @@ import {
   Linkedin,
   Mail
 } from 'lucide-react';
+import emailjs from "@emailjs/browser";
 
 /**
  * DEVNEXA - Professional Digital Agency Website
@@ -87,7 +88,28 @@ const material = new window.THREE.PointsMaterial({
       };
       
       document.addEventListener('mousemove', handleMouseMove);
+const form = useRef();
 
+  const sendEmail = (e) => {
+    e.preventDefault();
+
+    emailjs
+      .sendForm(
+        "service_devnexa",     // your service ID
+        "template_6ca97nb",    // your template ID
+        form.current,
+        "O3sDnGpVcn78rGBN1"    // your public key
+      )
+      .then(
+        (result) => {
+          alert("Message sent successfully!");
+          form.current.reset();
+        },
+        (error) => {
+          alert("Failed to send message");
+        }
+      );
+  };
       // Animation Loop
       const animate = () => {
         animationId = requestAnimationFrame(animate);
@@ -596,7 +618,7 @@ Empowering your business with cutting-edge development solutions. From app devel
                 <label className="block text-slate-400 mb-2 text-sm">Message</label>
                 <textarea rows="4" className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white focus:border-sky-500 focus:outline-none transition-colors" placeholder="Tell us about your project..."></textarea>
               </div>
-              <button className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold py-4 rounded-lg hover:shadow-lg hover:shadow-sky-500/25 transition-all">
+              <button className="w-full bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold py-4 rounded-lg hover:shadow-lg hover:shadow-sky-500/25 transition-all" onClick={()=>sendEmail()}>
                 Send Message
               </button>
             </form>
