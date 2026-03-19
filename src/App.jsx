@@ -19,16 +19,25 @@ import {
   Zap,
   TrendingUp
 } from 'lucide-react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Lenis from '@studio-freight/lenis';
+
+// Register GSAP plugins
+gsap.registerPlugin(ScrollTrigger);
 
 /**
  * DEVNEXA - Professional Digital Agency Website
- * Built with React, Tailwind CSS, and Three.js for 3D effects.
+ * Built with React, Tailwind CSS, Three.js, GSAP ScrollTrigger & Lenis.
  * Theme: Blue, Green, Gray matching logo
  */
 
-// --- 3D Background Component (Three.js) ---
+// --- 3D Background Component (Three.js) with Enhanced Scroll ---
 const ThreeBackground = () => {
   const mountRef = useRef(null);
+  const cameraRef = useRef(null);
+  const particlesRef = useRef(null);
+  const scrollYRef = useRef(0);
 
   useEffect(() => {
     const script = document.createElement('script');
@@ -41,7 +50,7 @@ const ThreeBackground = () => {
     
     document.body.appendChild(script);
 
-    let scene, camera, renderer, particles, lines, animationId;
+    let scene, camera, renderer, particles, animationId;
 
     const initThreeJS = () => {
       if (!mountRef.current || !window.THREE) return;
@@ -54,6 +63,7 @@ const ThreeBackground = () => {
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       mountRef.current.appendChild(renderer.domElement);
+      cameraRef.current = camera;
 
       // Create Particles with Blue/Green colors
       const geometry = new window.THREE.BufferGeometry();
@@ -70,7 +80,6 @@ const ThreeBackground = () => {
         positions[i3 + 1] = (Math.random() - 0.5) * 25;
         positions[i3 + 2] = (Math.random() - 0.5) * 25;
         
-        // Mix blue and green colors
         const mixedColor = Math.random() > 0.5 ? color1 : color2;
         colors[i3] = mixedColor.r;
         colors[i3 + 1] = mixedColor.g;
@@ -90,13 +99,7 @@ const ThreeBackground = () => {
       
       particles = new window.THREE.Points(geometry, material);
       scene.add(particles);
-
-      // Add connecting lines between nearby particles
-      const lineMaterial = new window.THREE.LineBasicMaterial({
-        color: 0x3B82F6,
-        transparent: true,
-        opacity: 0.15
-      });
+      particlesRef.current = particles;
 
       camera.position.z = 8;
 
@@ -113,14 +116,7 @@ const ThreeBackground = () => {
       
       document.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-      // Scroll-based camera movement
-      let scrollY = 0;
-      const handleScroll = () => {
-        scrollY = window.scrollY;
-      };
-      window.addEventListener('scroll', handleScroll, { passive: true });
-
-      // Animation Loop
+      // Animation Loop with Scroll Integration
       const clock = new window.THREE.Clock();
       
       const animate = () => {
@@ -138,8 +134,11 @@ const ThreeBackground = () => {
           particles.rotation.y += (targetX - particles.rotation.y) * 0.02;
           particles.rotation.x += (targetY - particles.rotation.x) * 0.02;
           
-          // Scroll-based vertical movement
-          camera.position.y = -scrollY * 0.002;
+          // 3D Scroll-based camera movement - moves through the particles
+          const scrollProgress = scrollYRef.current / (document.body.scrollHeight - window.innerHeight);
+          camera.position.z = 8 - (scrollProgress * 10); // Move from 8 to -2
+          camera.position.y = -scrollYRef.current * 0.005;
+          camera.rotation.z = scrollProgress * 0.5; // Slight rotation on scroll
         }
 
         renderer.render(scene, camera);
@@ -155,11 +154,9 @@ const ThreeBackground = () => {
       };
       window.addEventListener('resize', handleResize);
 
-      // Cleanup
       return () => {
         document.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('resize', handleResize);
-        window.removeEventListener('scroll', handleScroll);
         cancelAnimationFrame(animationId);
         if (mountRef.current && renderer.domElement) {
           mountRef.current.removeChild(renderer.domElement);
@@ -174,57 +171,212 @@ const ThreeBackground = () => {
     };
   }, []);
 
+  // Expose scroll update method
+  useEffect(() => {
+    const handleScroll = (e) => {
+      scrollYRef.current = window.scrollY;
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return <div ref={mountRef} className="fixed inset-0 z-0 opacity-60 pointer-events-none" />;
 };
 
-// --- Floating Orbs Background ---
+// --- Floating Orbs Background with Parallax ---
 const FloatingOrbs = () => {
+  const orb1Ref = useRef(null);
+  const orb2Ref = useRef(null);
+  const orb3Ref = useRef(null);
+  const orb4Ref = useRef(null);
+
+  useEffect(() => {
+    // Parallax effect for orbs on scroll
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      if (orb1Ref.current) orb1Ref.current.style.transform = `translateY(${scrollY * 0.2}px)`;
+      if (orb2Ref.current) orb2Ref.current.style.transform = `translateY(${scrollY * -0.3}px)`;
+      if (orb3Ref.current) orb3Ref.current.style.transform = `translateY(${scrollY * 0.15}px)`;
+      if (orb4Ref.current) orb4Ref.current.style.transform = `translateY(${scrollY * -0.2}px)`;
+    };
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute top-1/2 right-1/4 w-80 h-80 bg-green-500/15 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '1s' }} />
-      <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-cyan-500/15 rounded-full blur-[90px] animate-pulse" style={{ animationDelay: '2s' }} />
-      <div className="absolute top-3/4 right-1/3 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: '1.5s' }} />
+      <div ref={orb1Ref} className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px] animate-pulse transition-transform will-change-transform" />
+      <div ref={orb2Ref} className="absolute top-1/2 right-1/4 w-80 h-80 bg-green-500/15 rounded-full blur-[100px] animate-pulse transition-transform will-change-transform" style={{ animationDelay: '1s' }} />
+      <div ref={orb3Ref} className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-cyan-500/15 rounded-full blur-[90px] animate-pulse transition-transform will-change-transform" style={{ animationDelay: '2s' }} />
+      <div ref={orb4Ref} className="absolute top-3/4 right-1/3 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] animate-pulse transition-transform will-change-transform" style={{ animationDelay: '1.5s' }} />
     </div>
   );
 };
 
 // --- Reusable Components ---
 
-const SectionHeader = ({ title, subtitle, center = true }) => (
-  <div className={`mb-12 ${center ? 'text-center' : 'text-left'} reveal-on-scroll`}>
-    <h3 className="text-blue-500 font-bold tracking-widest uppercase text-sm mb-2">{subtitle}</h3>
-    <h2 className="text-3xl md:text-5xl font-bold text-slate-900 leading-tight">
-      {title}
-    </h2>
-    <div className={`h-1 w-20 bg-gradient-to-r from-blue-500 to-green-500 mt-4 rounded-full ${center ? 'mx-auto' : ''}`}></div>
-  </div>
-);
+const SectionHeader = ({ title, subtitle, center = true }) => {
+  const headerRef = useRef(null);
+  
+  useEffect(() => {
+    if (headerRef.current) {
+      gsap.fromTo(headerRef.current.children, 
+        { y: 50, opacity: 0, rotateX: 45 },
+        {
+          y: 0,
+          opacity: 1,
+          rotateX: 0,
+          duration: 1,
+          stagger: 0.2,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: headerRef.current,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        }
+      );
+    }
+  }, []);
 
-const ServiceCard = ({ icon: Icon, title, description }) => (
-  <div className="service-card rounded-2xl p-8 transition-all reveal-on-scroll bg-white/80 backdrop-blur-sm border border-slate-200/50 hover:border-blue-300/50">
-    <div className="w-14 h-14 mb-6 rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25">
-      <Icon className="w-7 h-7" />
+  return (
+    <div ref={headerRef} className={`mb-12 ${center ? 'text-center' : 'text-left'} perspective-1000`}>
+      <h3 className="text-blue-500 font-bold tracking-widest uppercase text-sm mb-2">{subtitle}</h3>
+      <h2 className="text-3xl md:text-5xl font-bold text-slate-900 leading-tight transform-gpu">
+        {title}
+      </h2>
+      <div className={`h-1 w-20 bg-gradient-to-r from-blue-500 to-green-500 mt-4 rounded-full ${center ? 'mx-auto' : ''}`}></div>
     </div>
-    <h3 className="text-xl font-semibold mb-3 text-slate-900">
-      {title}
-    </h3>
-    <p className="text-slate-600 leading-relaxed">
-      {description}
-    </p>
-  </div>
-);
+  );
+};
 
-const StatCard = ({ number, label }) => (
-  <div className="stat-card text-center p-6 rounded-2xl transition-all bg-white/90 backdrop-blur-sm border border-slate-200/50 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1">
-    <div className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-green-500 bg-clip-text text-transparent">
-      {number}
+const ServiceCard = ({ icon: Icon, title, description, index }) => {
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    if (cardRef.current) {
+      // 3D Tilt effect on scroll into view
+      gsap.fromTo(cardRef.current,
+        { 
+          y: 100, 
+          opacity: 0,
+          rotateY: -15,
+          rotateX: 10
+        },
+        {
+          y: 0,
+          opacity: 1,
+          rotateY: 0,
+          rotateX: 0,
+          duration: 0.8,
+          delay: index * 0.1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: cardRef.current,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        }
+      );
+
+      // Hover 3D effect
+      const card = cardRef.current;
+      const handleMouseMove = (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = (y - centerY) / 10;
+        const rotateY = (centerX - x) / 10;
+        
+        gsap.to(card, {
+          rotateX: rotateX,
+          rotateY: rotateY,
+          duration: 0.3,
+          ease: "power2.out",
+          transformPerspective: 1000
+        });
+      };
+
+      const handleMouseLeave = () => {
+        gsap.to(card, {
+          rotateX: 0,
+          rotateY: 0,
+          duration: 0.5,
+          ease: "power2.out"
+        });
+      };
+
+      card.addEventListener('mousemove', handleMouseMove);
+      card.addEventListener('mouseleave', handleMouseLeave);
+
+      return () => {
+        card.removeEventListener('mousemove', handleMouseMove);
+        card.removeEventListener('mouseleave', handleMouseLeave);
+      };
+    }
+  }, [index]);
+
+  return (
+    <div 
+      ref={cardRef} 
+      className="service-card rounded-2xl p-8 transition-all bg-white/80 backdrop-blur-sm border border-slate-200/50 hover:border-blue-300/50 transform-gpu hover:shadow-2xl hover:shadow-blue-500/20"
+      style={{ transformStyle: 'preserve-3d' }}
+    >
+      <div className="w-14 h-14 mb-6 rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 transform translate-z-10">
+        <Icon className="w-7 h-7" />
+      </div>
+      <h3 className="text-xl font-semibold mb-3 text-slate-900">
+        {title}
+      </h3>
+      <p className="text-slate-600 leading-relaxed">
+        {description}
+      </p>
     </div>
-    <p className="mt-2 text-sm font-medium text-slate-500">
-      {label}
-    </p>
-  </div>
-);
+  );
+};
+
+const StatCard = ({ number, label, index }) => {
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    if (cardRef.current) {
+      gsap.fromTo(cardRef.current,
+        { 
+          scale: 0.8, 
+          opacity: 0,
+          y: 50
+        },
+        {
+          scale: 1,
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          delay: index * 0.1,
+          ease: "back.out(1.7)",
+          scrollTrigger: {
+            trigger: cardRef.current,
+            start: "top 90%",
+            toggleActions: "play none none reverse"
+          }
+        }
+      );
+    }
+  }, [index]);
+
+  return (
+    <div ref={cardRef} className="stat-card text-center p-6 rounded-2xl transition-all bg-white/90 backdrop-blur-sm border border-slate-200/50 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-2 transform-gpu">
+      <div className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-green-500 bg-clip-text text-transparent">
+        {number}
+      </div>
+      <p className="mt-2 text-sm font-medium text-slate-500">
+        {label}
+      </p>
+    </div>
+  );
+};
 
 const NavLink = ({ href, children, mobile = false, onClick }) => (
   <a 
@@ -244,32 +396,62 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('all');
   const [scrolled, setScrolled] = useState(false);
   const form = useRef();
+  const lenisRef = useRef(null);
 
-const sendEmail = async (e) => {
-  e.preventDefault();
-
-  const formData = {
-    name: form.current.user_name.value,
-    email: form.current.user_email.value,
-    subject: form.current.subject.value,
-    message: form.current.message.value,
-  };
-
-  try {
-    const res = await fetch("/api/send-email", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
+  // Initialize Lenis Smooth Scroll
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 1,
+      touchMultiplier: 2,
     });
 
-    const data = await res.json();
-    alert(data.message);
-    if (res.ok) form.current.reset();
-  } catch (err) {
-    alert("Failed to send message");
-    console.error(err);
-  }
-};
+    lenisRef.current = lenis;
+
+    // Connect Lenis to GSAP ScrollTrigger
+    lenis.on('scroll', ScrollTrigger.update);
+
+    gsap.ticker.add((time) => {
+      lenis.raf(time * 1000);
+    });
+
+    gsap.ticker.lagSmoothing(0);
+
+    return () => {
+      lenis.destroy();
+      gsap.ticker.remove(lenis.raf);
+    };
+  }, []);
+
+  const sendEmail = async (e) => {
+    e.preventDefault();
+
+    const formData = {
+      name: form.current.user_name.value,
+      email: form.current.user_email.value,
+      subject: form.current.subject.value,
+      message: form.current.message.value,
+    };
+
+    try {
+      const res = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      alert(data.message);
+      if (res.ok) form.current.reset();
+    } catch (err) {
+      alert("Failed to send message");
+      console.error(err);
+    }
+  };
 
   // Scroll detection for navbar
   useEffect(() => {
@@ -280,24 +462,105 @@ const sendEmail = async (e) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Intersection Observer for Scroll Animations
+  // GSAP Scroll Animations
   useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('animate-slide-up', 'opacity-100');
-          entry.target.classList.remove('opacity-0', 'translate-y-10');
-        }
-      });
-    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+    // Hero Animation
+    gsap.fromTo(".hero-content > *",
+      { y: 100, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 1,
+        stagger: 0.2,
+        ease: "power3.out",
+        delay: 0.2
+      }
+    );
 
-    const elements = document.querySelectorAll('.reveal-on-scroll');
-    elements.forEach((el) => {
-      el.classList.add('opacity-0', 'translate-y-10', 'transition-all', 'duration-700', 'ease-out');
-      observer.observe(el);
+    // Parallax for About Image
+    gsap.to(".about-image", {
+      yPercent: -20,
+      ease: "none",
+      scrollTrigger: {
+        trigger: ".about-section",
+        start: "top bottom",
+        end: "bottom top",
+        scrub: true
+      }
     });
 
-    return () => observer.disconnect();
+    // Text reveal for About content
+    gsap.fromTo(".about-text > *",
+      { y: 30, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        stagger: 0.1,
+        duration: 0.8,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".about-text",
+          start: "top 80%",
+          toggleActions: "play none none reverse"
+        }
+      }
+    );
+
+    // Portfolio cards stagger
+    gsap.utils.toArray('.portfolio-card').forEach((card, i) => {
+      gsap.fromTo(card,
+        { y: 100, opacity: 0, rotateY: -10 },
+        {
+          y: 0,
+          opacity: 1,
+          rotateY: 0,
+          duration: 0.8,
+          delay: i * 0.1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: card,
+            start: "top 85%",
+            toggleActions: "play none none reverse"
+          }
+        }
+      );
+    });
+
+    // CTA Section zoom effect
+    gsap.fromTo(".cta-content",
+      { scale: 0.9, opacity: 0 },
+      {
+        scale: 1,
+        opacity: 1,
+        duration: 1,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: ".cta-section",
+          start: "top 70%",
+          toggleActions: "play none none reverse"
+        }
+      }
+    );
+
+    // Contact form slide in
+    gsap.fromTo(".contact-form",
+      { x: 50, opacity: 0 },
+      {
+        x: 0,
+        opacity: 1,
+        duration: 1,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: ".contact-section",
+          start: "top 70%",
+          toggleActions: "play none none reverse"
+        }
+      }
+    );
+
+    return () => {
+      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+    };
   }, []);
 
   const portfolioItems = [
@@ -379,7 +642,7 @@ const sendEmail = async (e) => {
       {/* Hero Section */}
       <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="animate-fade-in-up">
+          <div className="hero-content">
             <span className="inline-block py-2 px-4 rounded-full bg-blue-500/10 text-blue-600 border border-blue-500/20 text-sm font-semibold tracking-wide mb-6">
               INNOVATE • CONNECT • LEAD
             </span>
@@ -413,17 +676,17 @@ const sendEmail = async (e) => {
       </section>
 
       {/* About Section */}
-      <section id="about" className="py-24 relative">
+      <section id="about" className="py-24 relative about-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="relative reveal-on-scroll">
+            <div className="relative overflow-hidden rounded-2xl">
               <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-green-500 rounded-2xl opacity-20 blur-2xl"></div>
               <img 
                 src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80" 
                 alt="Team Collaboration" 
-                className="relative rounded-2xl shadow-2xl border border-slate-200/50"
+                className="about-image relative rounded-2xl shadow-2xl border border-slate-200/50 w-full"
               />
-              <div className="absolute -bottom-6 -right-6 p-6 rounded-xl bg-white shadow-xl border border-slate-100 hidden md:block">
+              <div className="absolute -bottom-6 -right-6 p-6 rounded-xl bg-white shadow-xl border border-slate-100 hidden md:block transform hover:scale-105 transition-transform">
                 <div className="flex items-center gap-4">
                   <div className="bg-green-500/10 p-3 rounded-full">
                     <CheckCircle2 className="w-8 h-8 text-green-500" />
@@ -436,7 +699,7 @@ const sendEmail = async (e) => {
               </div>
             </div>
             
-            <div className="reveal-on-scroll">
+            <div className="about-text">
               <h3 className="text-blue-500 font-bold uppercase tracking-wider mb-2">Who We Are</h3>
               <h2 className="text-4xl font-bold text-slate-900 mb-6">Architects of the <br/>Digital Realm</h2>
               <p className="text-slate-600 text-lg mb-6 leading-relaxed">
@@ -485,10 +748,10 @@ const sendEmail = async (e) => {
       <section className="py-16 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <StatCard number="150+" label="Projects Delivered" />
-            <StatCard number="98%" label="Client Satisfaction" />
-            <StatCard number="12+" label="Awards Won" />
-            <StatCard number="24/7" label="Support System" />
+            <StatCard number="150+" label="Projects Delivered" index={0} />
+            <StatCard number="98%" label="Client Satisfaction" index={1} />
+            <StatCard number="12+" label="Awards Won" index={2} />
+            <StatCard number="24/7" label="Support System" index={3} />
           </div>
         </div>
       </section>
@@ -501,36 +764,42 @@ const sendEmail = async (e) => {
             subtitle="WHAT WE DO" 
           />
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 perspective-1000">
             <ServiceCard 
               icon={Globe}
               title="Web Development"
               description="Custom, high-performance websites built with React & Next.js. We focus on SEO, speed, and responsive design."
+              index={0}
             />
             <ServiceCard 
               icon={Smartphone}
               title="App Development"
               description="Native and cross-platform mobile apps that provide seamless user experiences on iOS and Android."
+              index={1}
             />
             <ServiceCard 
               icon={Cpu}
               title="AI Solutions"
               description="Integrate artificial intelligence to automate processes and enhance user decision-making capabilities."
+              index={2}
             />
             <ServiceCard 
               icon={Layers}
               title="Digital Branding"
               description="Complete brand identity packages, from logo design to brand voice, ensuring you stand out."
+              index={3}
             />
             <ServiceCard 
               icon={Code}
               title="Content Writing"
               description="Engaging, SEO-optimized content that converts visitors into loyal customers."
+              index={4}
             />
             <ServiceCard 
               icon={TrendingUp}
               title="Digital Marketing"
               description="Data-driven strategies including SEO, content marketing, and social media management."
+              index={5}
             />
           </div>
         </div>
@@ -545,7 +814,7 @@ const sendEmail = async (e) => {
           />
 
           {/* Filter Tabs */}
-          <div className="flex justify-center gap-3 mb-12 flex-wrap reveal-on-scroll">
+          <div className="flex justify-center gap-3 mb-12 flex-wrap">
             {['all', 'web', 'app', 'branding'].map((tab) => (
               <button
                 key={tab}
@@ -562,12 +831,12 @@ const sendEmail = async (e) => {
           </div>
 
           {/* Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 perspective-1000">
             {filteredPortfolio.map((item, index) => (
               <div
                 key={item.id}
-                className="group relative rounded-2xl overflow-hidden cursor-pointer reveal-on-scroll bg-white shadow-lg hover:shadow-2xl transition-all duration-500"
-                style={{ transitionDelay: `${index * 100}ms` }}
+                className="portfolio-card group relative rounded-2xl overflow-hidden cursor-pointer bg-white shadow-lg hover:shadow-2xl transition-all duration-500 transform-gpu"
+                style={{ transformStyle: 'preserve-3d' }}
               >
                 <div className="aspect-video w-full overflow-hidden">
                   <img
@@ -590,7 +859,7 @@ const sendEmail = async (e) => {
             ))}
           </div>
           
-          <div className="mt-12 text-center reveal-on-scroll">
+          <div className="mt-12 text-center">
             <a href="#contact" className="inline-flex items-center gap-2 text-slate-600 hover:text-blue-600 font-medium border-b-2 border-blue-500 pb-1 transition-colors">
               View All Projects <ArrowRight className="w-4 h-4" />
             </a>
@@ -599,25 +868,25 @@ const sendEmail = async (e) => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 relative overflow-hidden">
+      <section className="py-20 relative overflow-hidden cta-section">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-700"></div>
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
-        <div className="max-w-4xl mx-auto px-4 relative z-10 text-center reveal-on-scroll">
+        <div className="max-w-4xl mx-auto px-4 relative z-10 text-center cta-content">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Ready to Transform Your Vision?</h2>
           <p className="text-blue-100 text-lg mb-10">
             Join the hundreds of businesses that have scaled their digital presence with devnexa.
           </p>
-          <a href="#contact" className="inline-block bg-white text-blue-600 px-10 py-4 rounded-full font-bold text-lg hover:bg-blue-50 transition-colors shadow-2xl hover:scale-105 transition-transform">
+          <a href="#contact" className="inline-block bg-white text-blue-600 px-10 py-4 rounded-full font-bold text-lg hover:bg-blue-50 transition-all shadow-2xl hover:scale-105">
             Schedule a Consultation
           </a>
         </div>
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-24 relative">
+      <section id="contact" className="py-24 relative contact-section">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            <div className="reveal-on-scroll">
+            <div className="contact-info">
               <h3 className="text-blue-500 font-bold uppercase tracking-wider mb-2">Get In Touch</h3>
               <h2 className="text-4xl font-bold text-slate-900 mb-6">Let's Build Something <br/>Amazing Together</h2>
               <p className="text-slate-600 mb-8">
@@ -670,7 +939,7 @@ const sendEmail = async (e) => {
             <form
               ref={form}
               onSubmit={sendEmail}
-              className="bg-white p-8 rounded-2xl shadow-xl border border-slate-100 reveal-on-scroll"
+              className="contact-form bg-white p-8 rounded-2xl shadow-xl border border-slate-100"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
@@ -751,64 +1020,28 @@ const sendEmail = async (e) => {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
         html {
-          scroll-behavior: smooth;
+          scroll-behavior: auto; /* Lenis handles this */
         }
 
         body {
           font-family: 'Inter', sans-serif;
         }
 
-        /* Scroll Reveal Animations */
-        .reveal-on-scroll {
-          transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        /* 3D Perspective utilities */
+        .perspective-1000 {
+          perspective: 1000px;
         }
 
-        .animate-slide-up {
-          animation: slideUp 0.8s ease-out forwards;
+        .transform-gpu {
+          transform: translateZ(0);
+          backface-visibility: hidden;
         }
 
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(40px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+        .translate-z-10 {
+          transform: translateZ(10px);
         }
 
-        .animate-fade-in-up {
-          animation: fadeInUp 1s ease-out forwards;
-        }
-
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fade-in-down {
-          animation: fadeInDown 0.3s ease-out forwards;
-        }
-
-        @keyframes fadeInDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        /* Scrollbar Styling */
+        /* Smooth scrollbar */
         ::-webkit-scrollbar {
           width: 10px;
         }
@@ -829,6 +1062,22 @@ const sendEmail = async (e) => {
         /* Selection */
         ::selection {
           background: rgba(59, 130, 246, 0.3);
+        }
+
+        /* Animation classes */
+        .animate-fade-in-down {
+          animation: fadeInDown 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeInDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
       `}</style>
     </div>
