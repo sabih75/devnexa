@@ -3,5 +3,14 @@
 @tailwind utilities;
 
 body {
-  background-color: var(--bg);
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+  background-color: #000;
 }

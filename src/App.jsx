@@ -1,61 +1,149 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Code, 
-  Smartphone, 
-  Globe, 
-  Cpu, 
-  Rocket, 
-  MessageSquare, 
+  ArrowUpRight, 
   Menu, 
   X, 
-  ChevronRight, 
-  ArrowRight,
-  CheckCircle2,
-  Github,
-  Twitter,
-  Linkedin,
+  ArrowDown,
   Mail,
-  Layers,
-  Zap,
-  TrendingUp
+  Smartphone,
+  Globe
 } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Lenis from '@studio-freight/lenis';
 
-// Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
 
-/**
- * DEVNEXA - Professional Digital Agency Website
- * Built with React, Tailwind CSS, Three.js, GSAP ScrollTrigger & Lenis.
- * Theme: Blue, Green, Gray matching logo
- */
+let Lenis;
+try {
+  Lenis = require('@studio-freight/lenis').default;
+} catch (e) {
+  Lenis = null;
+}
 
-// --- 3D Background Component (Three.js) with Enhanced Scroll ---
-const ThreeBackground = () => {
-  const mountRef = useRef(null);
-  const cameraRef = useRef(null);
-  const particlesRef = useRef(null);
-  const scrollYRef = useRef(0);
+// --- Grid Background (Light Theme - Visible Gray Lines) ---
+const GridBackground = () => {
+  return (
+    <div className="fixed inset-0 z-0 pointer-events-none">
+      {/* Main vertical grid lines - Light gray for white bg */}
+      <div className="absolute inset-0 flex justify-between px-12 md:px-24 opacity-[0.15]">
+        {[...Array(5)].map((_, i) => (
+          <div key={`v-${i}`} className="w-px h-full bg-gradient-to-b from-transparent via-neutral-400 to-transparent" />
+        ))}
+      </div>
+      
+      {/* Main horizontal grid lines */}
+      <div className="absolute inset-0 opacity-[0.1]">
+        {[...Array(8)].map((_, i) => (
+          <div 
+            key={`h-${i}`} 
+            className="absolute w-full h-px bg-neutral-400" 
+            style={{ top: `${(i + 1) * 12}%` }} 
+          />
+        ))}
+      </div>
+
+      {/* Fine grid pattern */}
+      <div 
+        className="absolute inset-0 opacity-[0.08]"
+        style={{
+          backgroundImage: `linear-gradient(to right, rgba(0, 0, 0, 0.15) 1px, transparent 1px),
+                           linear-gradient(to bottom, rgba(0, 0, 0, 0.15) 1px, transparent 1px)`,
+          backgroundSize: '120px 120px'
+        }}
+      />
+
+      {/* Accent lines - Blue/Green for DevNexa branding */}
+      <div className="absolute left-1/4 top-0 w-px h-full bg-gradient-to-b from-transparent via-blue-400/30 to-transparent opacity-60" />
+      <div className="absolute right-1/4 top-0 w-px h-full bg-gradient-to-b from-transparent via-green-400/30 to-transparent opacity-60" />
+    </div>
+  );
+};
+
+// --- Custom Cursor (Dark for white bg) ---
+const CustomCursor = () => {
+  const cursorRef = useRef(null);
+  const dotRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
-    script.async = true;
-    
-    script.onload = () => {
-      initThreeJS();
+    if (window.innerWidth < 768) return;
+    setIsVisible(true);
+
+    const moveCursor = (e) => {
+      if (cursorRef.current && dotRef.current) {
+        gsap.to(cursorRef.current, {
+          x: e.clientX,
+          y: e.clientY,
+          duration: 0.5,
+          ease: "power2.out"
+        });
+        gsap.to(dotRef.current, {
+          x: e.clientX,
+          y: e.clientY,
+          duration: 0.1
+        });
+      }
     };
+
+    const handleEnter = () => {
+      if (cursorRef.current) gsap.to(cursorRef.current, { scale: 2, duration: 0.3 });
+    };
+    const handleLeave = () => {
+      if (cursorRef.current) gsap.to(cursorRef.current, { scale: 1, duration: 0.3 });
+    };
+
+    window.addEventListener('mousemove', moveCursor);
     
-    document.body.appendChild(script);
+    setTimeout(() => {
+      const clickables = document.querySelectorAll('a, button, input, textarea, select');
+      clickables.forEach(el => {
+        el.addEventListener('mouseenter', handleEnter);
+        el.addEventListener('mouseleave', handleLeave);
+      });
+    }, 1000);
 
-    let scene, camera, renderer, particles, animationId;
+    return () => window.removeEventListener('mousemove', moveCursor);
+  }, []);
 
-    const initThreeJS = () => {
-      if (!mountRef.current || !window.THREE) return;
+  if (!isVisible) return null;
 
-      // Scene Setup
+  return (
+    <>
+      {/* Dark cursor for white background */}
+      <div ref={cursorRef} className="fixed w-10 h-10 border border-neutral-900 rounded-full pointer-events-none z-[9999] hidden md:block -translate-x-1/2 -translate-y-1/2" />
+      <div ref={dotRef} className="fixed w-1 h-1 bg-neutral-900 rounded-full pointer-events-none z-[9999] hidden md:block -translate-x-1/2 -translate-y-1/2" />
+    </>
+  );
+};
+
+// --- 3D Background (Subtle for light theme) ---
+const ThreeBackground = () => {
+  const mountRef = useRef(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!window.THREE) {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+      script.async = true;
+      script.onload = () => setLoaded(true);
+      document.body.appendChild(script);
+      return () => {
+        if (script.parentNode) script.parentNode.removeChild(script);
+      };
+    } else {
+      setLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!loaded || !mountRef.current) return;
+
+    let scene, camera, renderer, particles;
+    let animationId;
+    let mouseX = 0, mouseY = 0;
+
+    try {
       scene = new window.THREE.Scene();
       camera = new window.THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
       renderer = new window.THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -63,52 +151,32 @@ const ThreeBackground = () => {
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       mountRef.current.appendChild(renderer.domElement);
-      cameraRef.current = camera;
 
-      // Create Particles with Blue/Green colors
       const geometry = new window.THREE.BufferGeometry();
-      const count = 800;
+      const count = 400;
       const positions = new Float32Array(count * 3);
-      const colors = new Float32Array(count * 3);
-      
-      const color1 = new window.THREE.Color(0x3B82F6); // Blue
-      const color2 = new window.THREE.Color(0x10B981); // Green
       
       for(let i = 0; i < count; i++) {
         const i3 = i * 3;
-        positions[i3] = (Math.random() - 0.5) * 25;
-        positions[i3 + 1] = (Math.random() - 0.5) * 25;
-        positions[i3 + 2] = (Math.random() - 0.5) * 25;
-        
-        const mixedColor = Math.random() > 0.5 ? color1 : color2;
-        colors[i3] = mixedColor.r;
-        colors[i3 + 1] = mixedColor.g;
-        colors[i3 + 2] = mixedColor.b;
+        positions[i3] = (Math.random() - 0.5) * 30;
+        positions[i3 + 1] = (Math.random() - 0.5) * 30;
+        positions[i3 + 2] = (Math.random() - 0.5) * 30;
       }
       
       geometry.setAttribute('position', new window.THREE.BufferAttribute(positions, 3));
-      geometry.setAttribute('color', new window.THREE.BufferAttribute(colors, 3));
       
+      // Light gray particles for white bg
       const material = new window.THREE.PointsMaterial({
-        size: 0.08,
-        vertexColors: true,
+        size: 0.05,
+        color: 0xcccccc,
         transparent: true,
-        opacity: 0.8,
-        blending: window.THREE.AdditiveBlending
+        opacity: 0.3,
       });
       
       particles = new window.THREE.Points(geometry, material);
       scene.add(particles);
-      particlesRef.current = particles;
+      camera.position.z = 10;
 
-      camera.position.z = 8;
-
-      // Mouse Interaction
-      let mouseX = 0;
-      let mouseY = 0;
-      let targetX = 0;
-      let targetY = 0;
-      
       const handleMouseMove = (event) => {
         mouseX = (event.clientX / window.innerWidth - 0.5) * 2;
         mouseY = (event.clientY / window.innerHeight - 0.5) * 2;
@@ -116,41 +184,24 @@ const ThreeBackground = () => {
       
       document.addEventListener('mousemove', handleMouseMove, { passive: true });
 
-      // Animation Loop with Scroll Integration
-      const clock = new window.THREE.Clock();
-      
       const animate = () => {
         animationId = requestAnimationFrame(animate);
-        const elapsedTime = clock.getElapsedTime();
-        
         if (particles) {
-          // Gentle rotation
-          particles.rotation.y = elapsedTime * 0.05;
-          particles.rotation.x = Math.sin(elapsedTime * 0.03) * 0.1;
-          
-          // Mouse follow with smooth interpolation
-          targetX = mouseX * 0.5;
-          targetY = mouseY * 0.5;
-          particles.rotation.y += (targetX - particles.rotation.y) * 0.02;
-          particles.rotation.x += (targetY - particles.rotation.x) * 0.02;
-          
-          // 3D Scroll-based camera movement - moves through the particles
-          const scrollProgress = scrollYRef.current / (document.body.scrollHeight - window.innerHeight);
-          camera.position.z = 8 - (scrollProgress * 10); // Move from 8 to -2
-          camera.position.y = -scrollYRef.current * 0.005;
-          camera.rotation.z = scrollProgress * 0.5; // Slight rotation on scroll
+          particles.rotation.y += 0.001;
+          particles.rotation.x += (mouseY * 0.5 - particles.rotation.x) * 0.02;
+          particles.rotation.y += (mouseX * 0.5 - particles.rotation.y) * 0.02;
         }
-
         renderer.render(scene, camera);
       };
       
       animate();
 
-      // Handle resize
       const handleResize = () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        if (camera && renderer) {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        }
       };
       window.addEventListener('resize', handleResize);
 
@@ -158,302 +209,155 @@ const ThreeBackground = () => {
         document.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('resize', handleResize);
         cancelAnimationFrame(animationId);
-        if (mountRef.current && renderer.domElement) {
+        if (mountRef.current && renderer?.domElement) {
           mountRef.current.removeChild(renderer.domElement);
         }
       };
-    };
+    } catch (err) {
+      console.error('Three.js error:', err);
+    }
+  }, [loaded]);
 
-    return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
-      }
-    };
-  }, []);
-
-  // Expose scroll update method
-  useEffect(() => {
-    const handleScroll = (e) => {
-      scrollYRef.current = window.scrollY;
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  return <div ref={mountRef} className="fixed inset-0 z-0 opacity-60 pointer-events-none" />;
+  return <div ref={mountRef} className="fixed inset-0 z-0 opacity-50 pointer-events-none" />;
 };
 
-// --- Floating Orbs Background with Parallax ---
-const FloatingOrbs = () => {
-  const orb1Ref = useRef(null);
-  const orb2Ref = useRef(null);
-  const orb3Ref = useRef(null);
-  const orb4Ref = useRef(null);
+// --- Text Reveal ---
+const RevealText = ({ children, className = "", delay = 0 }) => {
+  const ref = useRef(null);
 
   useEffect(() => {
-    // Parallax effect for orbs on scroll
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      if (orb1Ref.current) orb1Ref.current.style.transform = `translateY(${scrollY * 0.2}px)`;
-      if (orb2Ref.current) orb2Ref.current.style.transform = `translateY(${scrollY * -0.3}px)`;
-      if (orb3Ref.current) orb3Ref.current.style.transform = `translateY(${scrollY * 0.15}px)`;
-      if (orb4Ref.current) orb4Ref.current.style.transform = `translateY(${scrollY * -0.2}px)`;
-    };
+    if (!ref.current) return;
     
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  return (
-    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-      <div ref={orb1Ref} className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px] animate-pulse transition-transform will-change-transform" />
-      <div ref={orb2Ref} className="absolute top-1/2 right-1/4 w-80 h-80 bg-green-500/15 rounded-full blur-[100px] animate-pulse transition-transform will-change-transform" style={{ animationDelay: '1s' }} />
-      <div ref={orb3Ref} className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-cyan-500/15 rounded-full blur-[90px] animate-pulse transition-transform will-change-transform" style={{ animationDelay: '2s' }} />
-      <div ref={orb4Ref} className="absolute top-3/4 right-1/3 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] animate-pulse transition-transform will-change-transform" style={{ animationDelay: '1.5s' }} />
-    </div>
-  );
-};
-
-// --- Reusable Components ---
-
-const SectionHeader = ({ title, subtitle, center = true }) => {
-  const headerRef = useRef(null);
-  
-  useEffect(() => {
-    if (headerRef.current) {
-      gsap.fromTo(headerRef.current.children, 
-        { y: 50, opacity: 0, rotateX: 45 },
-        {
-          y: 0,
-          opacity: 1,
-          rotateX: 0,
-          duration: 1,
-          stagger: 0.2,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: headerRef.current,
-            start: "top 85%",
-            toggleActions: "play none none reverse"
-          }
+    gsap.fromTo(ref.current,
+      { y: "100%" },
+      {
+        y: "0%",
+        duration: 1.2,
+        delay: delay,
+        ease: "power4.out",
+        scrollTrigger: {
+          trigger: ref.current,
+          start: "top 85%",
+          toggleActions: "play none none reverse"
         }
-      );
-    }
-  }, []);
+      }
+    );
+  }, [delay]);
 
   return (
-    <div ref={headerRef} className={`mb-12 ${center ? 'text-center' : 'text-left'} perspective-1000`}>
-      <h3 className="text-blue-500 font-bold tracking-widest uppercase text-sm mb-2">{subtitle}</h3>
-      <h2 className="text-3xl md:text-5xl font-bold text-slate-900 leading-tight transform-gpu">
-        {title}
-      </h2>
-      <div className={`h-1 w-20 bg-gradient-to-r from-blue-500 to-green-500 mt-4 rounded-full ${center ? 'mx-auto' : ''}`}></div>
+    <div className="overflow-hidden">
+      <div ref={ref} className={className}>
+        {children}
+      </div>
     </div>
   );
 };
 
-const ServiceCard = ({ icon: Icon, title, description, index }) => {
+// --- Project Card ---
+const ProjectCard = ({ project, index, onClick }) => {
   const cardRef = useRef(null);
 
   useEffect(() => {
-    if (cardRef.current) {
-      // 3D Tilt effect on scroll into view
-      gsap.fromTo(cardRef.current,
-        { 
-          y: 100, 
-          opacity: 0,
-          rotateY: -15,
-          rotateX: 10
-        },
-        {
-          y: 0,
-          opacity: 1,
-          rotateY: 0,
-          rotateX: 0,
-          duration: 0.8,
-          delay: index * 0.1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: cardRef.current,
-            start: "top 85%",
-            toggleActions: "play none none reverse"
-          }
-        }
-      );
+    if (!cardRef.current) return;
 
-      // Hover 3D effect
-      const card = cardRef.current;
-      const handleMouseMove = (e) => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-        const rotateX = (y - centerY) / 10;
-        const rotateY = (centerX - x) / 10;
+    gsap.fromTo(cardRef.current,
+      { y: 100, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 1,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: cardRef.current,
+          start: "top 85%",
+          toggleActions: "play none none reverse"
+        }
+      }
+    );
+
+    const img = cardRef.current.querySelector('img');
+    if (img) {
+      gsap.to(img, {
+        yPercent: -15,
+        ease: "none",
+        scrollTrigger: {
+          trigger: cardRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true
+        }
+      });
+    }
+  }, []);
+
+  const isEven = index % 2 === 0;
+
+  return (
+    <article ref={cardRef} className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center mb-32 relative z-10">
+      <div className={`overflow-hidden ${isEven ? 'lg:order-1' : 'lg:order-2'}`}>
+        <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100 group cursor-pointer border border-neutral-200 shadow-sm">
+          <img 
+            src={project.img} 
+            alt={project.title}
+            className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-700 ease-out"
+          />
+          <div className="absolute inset-0 bg-white/10 group-hover:bg-transparent transition-colors duration-500" />
+        </div>
+      </div>
+
+      <div className={`space-y-6 ${isEven ? 'lg:order-2' : 'lg:order-1 lg:text-right'}`}>
+        <div className={`flex items-center gap-4 text-sm text-neutral-500 tracking-widest uppercase ${isEven ? '' : 'lg:justify-end'}`}>
+          <span className="text-neutral-600">{project.cat}</span>
+          <span className="w-12 h-px bg-neutral-300" />
+          <span className="text-neutral-400">2024</span>
+        </div>
         
-        gsap.to(card, {
-          rotateX: rotateX,
-          rotateY: rotateY,
-          duration: 0.3,
-          ease: "power2.out",
-          transformPerspective: 1000
-        });
-      };
+        <h3 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-neutral-900 group-hover:text-blue-600 transition-colors duration-300">
+          {project.title}
+        </h3>
+        
+        <p className="text-neutral-600 text-lg leading-relaxed max-w-md">
+          {project.desc}
+        </p>
 
-      const handleMouseLeave = () => {
-        gsap.to(card, {
-          rotateX: 0,
-          rotateY: 0,
-          duration: 0.5,
-          ease: "power2.out"
-        });
-      };
-
-      card.addEventListener('mousemove', handleMouseMove);
-      card.addEventListener('mouseleave', handleMouseLeave);
-
-      return () => {
-        card.removeEventListener('mousemove', handleMouseMove);
-        card.removeEventListener('mouseleave', handleMouseLeave);
-      };
-    }
-  }, [index]);
-
-  return (
-    <div 
-      ref={cardRef} 
-      className="service-card rounded-2xl p-8 transition-all bg-white/80 backdrop-blur-sm border border-slate-200/50 hover:border-blue-300/50 transform-gpu hover:shadow-2xl hover:shadow-blue-500/20"
-      style={{ transformStyle: 'preserve-3d' }}
-    >
-      <div className="w-14 h-14 mb-6 rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25 transform translate-z-10">
-        <Icon className="w-7 h-7" />
+        <div className={`pt-4 ${isEven ? '' : 'lg:text-right'}`}>
+          <button 
+            onClick={onClick}
+            className="inline-flex items-center gap-2 text-neutral-900 border-b border-neutral-900 pb-1 hover:text-blue-600 hover:border-blue-600 transition-colors group/link"
+          >
+            View Project 
+            <ArrowUpRight className="w-4 h-4 group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
+          </button>
+        </div>
       </div>
-      <h3 className="text-xl font-semibold mb-3 text-slate-900">
-        {title}
-      </h3>
-      <p className="text-slate-600 leading-relaxed">
-        {description}
-      </p>
-    </div>
+    </article>
   );
 };
 
-const StatCard = ({ number, label, index }) => {
-  const cardRef = useRef(null);
-
-  useEffect(() => {
-    if (cardRef.current) {
-      gsap.fromTo(cardRef.current,
-        { 
-          scale: 0.8, 
-          opacity: 0,
-          y: 50
-        },
-        {
-          scale: 1,
-          opacity: 1,
-          y: 0,
-          duration: 0.6,
-          delay: index * 0.1,
-          ease: "back.out(1.7)",
-          scrollTrigger: {
-            trigger: cardRef.current,
-            start: "top 90%",
-            toggleActions: "play none none reverse"
-          }
-        }
-      );
-    }
-  }, [index]);
-
-  return (
-    <div ref={cardRef} className="stat-card text-center p-6 rounded-2xl transition-all bg-white/90 backdrop-blur-sm border border-slate-200/50 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-2 transform-gpu">
-      <div className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-green-500 bg-clip-text text-transparent">
-        {number}
-      </div>
-      <p className="mt-2 text-sm font-medium text-slate-500">
-        {label}
-      </p>
-    </div>
-  );
-};
-
-const NavLink = ({ href, children, mobile = false, onClick }) => (
-  <a 
-    href={href} 
-    onClick={onClick}
-    className={`${mobile ? 'block w-full py-4 text-center text-xl border-b border-slate-200' : 'text-sm font-medium'} text-slate-600 hover:text-blue-600 transition-colors relative group`}
-  >
-    {children}
-    {!mobile && <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-green-500 transition-all group-hover:w-full"></span>}
-  </a>
-);
-
-// --- Main Application Component ---
-
+// --- Main App ---
 export default function App() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [scrolled, setScrolled] = useState(false);
-  const form = useRef();
-  const lenisRef = useRef(null);
+  const formRef = useRef(null);
 
-  // Initialize Lenis Smooth Scroll
   useEffect(() => {
+    if (!Lenis) return;
+    
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: 'vertical',
-      gestureOrientation: 'vertical',
       smoothWheel: true,
-      wheelMultiplier: 1,
-      touchMultiplier: 2,
     });
 
-    lenisRef.current = lenis;
-
-    // Connect Lenis to GSAP ScrollTrigger
     lenis.on('scroll', ScrollTrigger.update);
-
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000);
-    });
-
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
     gsap.ticker.lagSmoothing(0);
 
-    return () => {
-      lenis.destroy();
-      gsap.ticker.remove(lenis.raf);
-    };
+    return () => lenis.destroy();
   }, []);
 
-  const sendEmail = async (e) => {
-    e.preventDefault();
-
-    const formData = {
-      name: form.current.user_name.value,
-      email: form.current.user_email.value,
-      subject: form.current.subject.value,
-      message: form.current.message.value,
-    };
-
-    try {
-      const res = await fetch("/api/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-      alert(data.message);
-      if (res.ok) form.current.reset();
-    } catch (err) {
-      alert("Failed to send message");
-      console.error(err);
-    }
-  };
-
-  // Scroll detection for navbar
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
@@ -462,622 +366,374 @@ export default function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // GSAP Scroll Animations
-  useEffect(() => {
-    // Hero Animation
-    gsap.fromTo(".hero-content > *",
-      { y: 100, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 1,
-        stagger: 0.2,
-        ease: "power3.out",
-        delay: 0.2
-      }
-    );
-
-    // Parallax for About Image
-    gsap.to(".about-image", {
-      yPercent: -20,
-      ease: "none",
-      scrollTrigger: {
-        trigger: ".about-section",
-        start: "top bottom",
-        end: "bottom top",
-        scrub: true
-      }
-    });
-
-    // Text reveal for About content
-    gsap.fromTo(".about-text > *",
-      { y: 30, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        stagger: 0.1,
-        duration: 0.8,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: ".about-text",
-          start: "top 80%",
-          toggleActions: "play none none reverse"
-        }
-      }
-    );
-
-    // Portfolio cards stagger
-    gsap.utils.toArray('.portfolio-card').forEach((card, i) => {
-      gsap.fromTo(card,
-        { y: 100, opacity: 0, rotateY: -10 },
-        {
-          y: 0,
-          opacity: 1,
-          rotateY: 0,
-          duration: 0.8,
-          delay: i * 0.1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: card,
-            start: "top 85%",
-            toggleActions: "play none none reverse"
-          }
-        }
-      );
-    });
-
-    // CTA Section zoom effect
-    gsap.fromTo(".cta-content",
-      { scale: 0.9, opacity: 0 },
-      {
-        scale: 1,
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: ".cta-section",
-          start: "top 70%",
-          toggleActions: "play none none reverse"
-        }
-      }
-    );
-
-    // Contact form slide in
-    gsap.fromTo(".contact-form",
-      { x: 50, opacity: 0 },
-      {
-        x: 0,
-        opacity: 1,
-        duration: 1,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: ".contact-section",
-          start: "top 70%",
-          toggleActions: "play none none reverse"
-        }
-      }
-    );
-
-    return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-    };
-  }, []);
+  const scrollToContact = () => {
+    formRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const portfolioItems = [
-    { id: 1, cat: 'web', title: 'FinTech Dashboard', img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80', desc: 'Real-time financial analytics platform.' },
-    { id: 2, cat: 'app', title: 'HealthTrack Mobile', img: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=800&q=80', desc: 'AI-powered fitness tracking app.' },
-    { id: 3, cat: 'web', title: 'E-Commerce Elite', img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80', desc: 'High-conversion Shopify solution.' },
-    { id: 4, cat: 'branding', title: 'NeonBrand Identity', img: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80', desc: 'Complete corporate rebranding.' },
+    { id: 1, cat: 'Web Development', title: 'FinTech Dashboard', img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1600&q=80', desc: 'Real-time financial analytics platform handling millions of transactions daily with high-frequency trading capabilities.' },
+    { id: 2, cat: 'Mobile App', title: 'HealthTrack', img: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=1600&q=80', desc: 'AI-powered fitness tracking ecosystem built for iOS and Android with seamless wearable integration.' },
+    { id: 3, cat: 'Brand Identity', title: 'E-Commerce Elite', img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1600&q=80', desc: 'High-conversion Shopify solution with custom checkout flow and inventory management system.' },
+    { id: 4, cat: '3D Experience', title: 'NeonBrand', img: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1600&q=80', desc: 'Complete corporate rebranding with WebGL immersive experiences and motion design language.' },
   ];
 
-  const filteredPortfolio = activeTab === 'all' ? portfolioItems : portfolioItems.filter(item => item.cat === activeTab);
+  const filteredPortfolio = activeTab === 'all' 
+    ? portfolioItems 
+    : portfolioItems.filter(item => item.cat.toLowerCase().includes(activeTab));
+
+  const navLinks = [
+    { name: 'Work', href: '#work' },
+    { name: 'About', href: '#about' },
+    { name: 'Services', href: '#services' },
+    { name: 'Contact', href: '#contact' }
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-700 font-sans selection:bg-blue-500/30 overflow-x-hidden">
-      
-      {/* 3D Background */}
+    <div className="bg-white text-neutral-900 min-h-screen w-full overflow-x-hidden selection:bg-blue-500 selection:text-white">
+      <CustomCursor />
       <ThreeBackground />
-      <FloatingOrbs />
-      
-      {/* Grid Pattern Overlay */}
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]" 
-        style={{ 
-          backgroundImage: 'linear-gradient(rgba(59, 130, 246, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.3) 1px, transparent 1px)',
-          backgroundSize: '60px 60px'
-        }} 
-      />
+      <GridBackground />
 
-      {/* Navigation */}
-      <nav className={`fixed w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-lg shadow-lg shadow-slate-200/50' : 'bg-transparent'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Navigation - Light Theme */}
+      <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md border-b border-neutral-200' : 'bg-transparent'}`}>
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="flex items-center justify-between h-20">
-            {/* Logo */}
-            <a href="#home" className="flex-shrink-0 flex items-center gap-3 cursor-pointer">
-              <div className="w-16 h-16 flex items-center justify-center">
-                <img
-                  src="/logo.png"
-                  alt="DevNexa Logo"
-                  className="w-full h-full object-contain"
-                />
-              </div>
-              <span className="text-2xl font-extrabold tracking-tight text-slate-900">
-              devnexa<span className="text-green-500">.</span>
-              </span>
-            </a>
-
-            {/* Desktop Menu */}
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-8">
-                <NavLink href="#home">Home</NavLink>
-                <NavLink href="#about">About</NavLink>
-                <NavLink href="#services">Services</NavLink>
-                <NavLink href="#work">Our Work</NavLink>
-                <a href="#contact" className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-full transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40">
-                  Get Started
+      <a href="#" className="flex items-center gap-1 text-2xl font-bold tracking-tighter text-neutral-900 hover:text-blue-600 transition-colors z-50 group">
+  <img 
+    src="/logo.png" 
+    alt="DevNexa Logo" 
+    className="h-14 w-auto object-contain"
+  />
+  <span className="-ml-1">devnexa<span className="text-blue-600">.</span></span>
+</a>     
+            <div className="hidden md:flex items-center gap-8">
+              {navLinks.map((link) => (
+                <a 
+                  key={link.name}
+                  href={link.href}
+                  className="text-sm font-medium tracking-widest uppercase text-neutral-600 hover:text-neutral-900 transition-colors relative group"
+                >
+                  {link.name}
+                  <span className="absolute -bottom-1 left-0 w-0 h-px bg-blue-600 transition-all group-hover:w-full" />
                 </a>
-              </div>
-            </div>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-slate-600 hover:text-blue-600 p-2 transition-colors">
-                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              ))}
+              <button 
+                onClick={scrollToContact}
+                className="px-6 py-2 border border-neutral-900 text-neutral-900 text-sm tracking-widest uppercase hover:bg-neutral-900 hover:text-white transition-all duration-300"
+              >
+                Get Started
               </button>
             </div>
+
+            <button 
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="md:hidden flex items-center gap-2 text-sm font-medium tracking-widest uppercase text-neutral-900 hover:text-blue-600 transition-colors z-50 relative"
+            >
+              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
-
-        {/* Mobile Menu Overlay */}
-        {isMenuOpen && (
-          <div className="md:hidden bg-white/95 backdrop-blur-lg absolute top-20 left-0 w-full h-screen p-4 flex flex-col items-center animate-fade-in-down">
-            <NavLink href="#home" mobile onClick={() => setIsMenuOpen(false)}>Home</NavLink>
-            <NavLink href="#about" mobile onClick={() => setIsMenuOpen(false)}>About</NavLink>
-            <NavLink href="#services" mobile onClick={() => setIsMenuOpen(false)}>Services</NavLink>
-            <NavLink href="#work" mobile onClick={() => setIsMenuOpen(false)}>Work</NavLink>
-            <NavLink href="#contact" mobile onClick={() => setIsMenuOpen(false)}>Contact</NavLink>
-          </div>
-        )}
       </nav>
 
-      {/* Hero Section */}
-      <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="hero-content">
-            <span className="inline-block py-2 px-4 rounded-full bg-blue-500/10 text-blue-600 border border-blue-500/20 text-sm font-semibold tracking-wide mb-6">
-              INNOVATE • CONNECT • LEAD
-            </span>
-            <h1 className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight mb-6 leading-tight">
-              Unleash Your<br />
-              <span className="bg-gradient-to-r from-blue-500 via-blue-600 to-green-500 bg-clip-text text-transparent">
-                Digital Potential
-              </span>
-            </h1>
-            <p className="mt-4 max-w-2xl mx-auto text-xl text-slate-600 mb-10">
-              Empowering your business with cutting-edge development solutions. From app development to digital marketing, we've got you covered!
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="#contact" className="px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-full font-bold text-lg transition-all shadow-xl shadow-blue-500/30 flex items-center justify-center gap-2 group hover:scale-105">
-                Start Your Project
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </a>
-              <a href="#work" className="px-8 py-4 bg-white text-slate-700 border-2 border-slate-200 hover:border-blue-400 hover:text-blue-600 rounded-full font-bold text-lg transition-all flex items-center justify-center hover:shadow-lg">
-                View Portfolio
-              </a>
-            </div>
-          </div>
-        </div>
-        
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <div className="w-6 h-10 border-2 border-slate-400 rounded-full flex justify-center pt-2">
-            <div className="w-1.5 h-3 bg-gradient-to-b from-blue-500 to-green-500 rounded-full"></div>
-          </div>
-        </div>
-      </section>
-
-      {/* About Section */}
-      <section id="about" className="py-24 relative about-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="relative overflow-hidden rounded-2xl">
-              <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-green-500 rounded-2xl opacity-20 blur-2xl"></div>
-              <img 
-                src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80" 
-                alt="Team Collaboration" 
-                className="about-image relative rounded-2xl shadow-2xl border border-slate-200/50 w-full"
-              />
-              <div className="absolute -bottom-6 -right-6 p-6 rounded-xl bg-white shadow-xl border border-slate-100 hidden md:block transform hover:scale-105 transition-transform">
-                <div className="flex items-center gap-4">
-                  <div className="bg-green-500/10 p-3 rounded-full">
-                    <CheckCircle2 className="w-8 h-8 text-green-500" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-slate-900">5+ Years</div>
-                    <div className="text-slate-500 text-sm">Experience</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="about-text">
-              <h3 className="text-blue-500 font-bold uppercase tracking-wider mb-2">Who We Are</h3>
-              <h2 className="text-4xl font-bold text-slate-900 mb-6">Architects of the <br/>Digital Realm</h2>
-              <p className="text-slate-600 text-lg mb-6 leading-relaxed">
-                At devnexa, we don't just write code; we craft experiences. Founded by a team of visionary developers and designers, our mission is to bridge the gap between complex technology and human-centric design.
-              </p>
-              <p className="text-slate-600 text-lg mb-8 leading-relaxed">
-                We believe that every brand has a story waiting to be told. Through immersive web design, seamless mobile applications, and strategic branding, we turn your vision into a digital reality.
-              </p>
-              
-              <div className="grid grid-cols-2 gap-6 mb-8">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                    <Rocket className="w-5 h-5 text-blue-500" />
-                  </div>
-                  <span className="text-slate-900 font-medium">Fast Performance</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                    <Globe className="w-5 h-5 text-green-500" />
-                  </div>
-                  <span className="text-slate-900 font-medium">Global Reach</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                    <Cpu className="w-5 h-5 text-blue-500" />
-                  </div>
-                  <span className="text-slate-900 font-medium">AI Integration</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                    <MessageSquare className="w-5 h-5 text-green-500" />
-                  </div>
-                  <span className="text-slate-900 font-medium">24/7 Support</span>
-                </div>
-              </div>
-
-              <a href="#services" className="text-blue-600 font-semibold hover:text-blue-700 flex items-center gap-2 group">
-                Learn more about our journey <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-16 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <StatCard number="150+" label="Projects Delivered" index={0} />
-            <StatCard number="98%" label="Client Satisfaction" index={1} />
-            <StatCard number="12+" label="Awards Won" index={2} />
-            <StatCard number="24/7" label="Support System" index={3} />
-          </div>
-        </div>
-      </section>
-
-      {/* Services Section */}
-      <section id="services" className="py-24 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader 
-            title="Our Expertise" 
-            subtitle="WHAT WE DO" 
-          />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 perspective-1000">
-            <ServiceCard 
-              icon={Globe}
-              title="Web Development"
-              description="Custom, high-performance websites built with React & Next.js. We focus on SEO, speed, and responsive design."
-              index={0}
-            />
-            <ServiceCard 
-              icon={Smartphone}
-              title="App Development"
-              description="Native and cross-platform mobile apps that provide seamless user experiences on iOS and Android."
-              index={1}
-            />
-            <ServiceCard 
-              icon={Cpu}
-              title="AI Solutions"
-              description="Integrate artificial intelligence to automate processes and enhance user decision-making capabilities."
-              index={2}
-            />
-            <ServiceCard 
-              icon={Layers}
-              title="Digital Branding"
-              description="Complete brand identity packages, from logo design to brand voice, ensuring you stand out."
-              index={3}
-            />
-            <ServiceCard 
-              icon={Code}
-              title="Content Writing"
-              description="Engaging, SEO-optimized content that converts visitors into loyal customers."
-              index={4}
-            />
-            <ServiceCard 
-              icon={TrendingUp}
-              title="Digital Marketing"
-              description="Data-driven strategies including SEO, content marketing, and social media management."
-              index={5}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Portfolio Section */}
-      <section id="work" className="py-24 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SectionHeader 
-            title="Featured Projects" 
-            subtitle="OUR WORK" 
-          />
-
-          {/* Filter Tabs */}
-          <div className="flex justify-center gap-3 mb-12 flex-wrap">
-            {['all', 'web', 'app', 'branding'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-6 py-2.5 rounded-full text-sm font-medium transition-all ${
-                  activeTab === tab 
-                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30' 
-                    : 'bg-white text-slate-600 hover:text-blue-600 border border-slate-200 hover:border-blue-300'
-                }`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
-          </div>
-
-          {/* Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 perspective-1000">
-            {filteredPortfolio.map((item, index) => (
-              <div
-                key={item.id}
-                className="portfolio-card group relative rounded-2xl overflow-hidden cursor-pointer bg-white shadow-lg hover:shadow-2xl transition-all duration-500 transform-gpu"
-                style={{ transformStyle: 'preserve-3d' }}
-              >
-                <div className="aspect-video w-full overflow-hidden">
-                  <img
-                    src={item.img}
-                    alt={item.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                </div>
-
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/95 via-slate-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-8">
-                  <h3 className="text-2xl font-bold text-white mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                    {item.title}
-                  </h3>
-                  <p className="text-blue-400 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75">
-                    {item.desc}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-12 text-center">
-            <a href="#contact" className="inline-flex items-center gap-2 text-slate-600 hover:text-blue-600 font-medium border-b-2 border-blue-500 pb-1 transition-colors">
-              View All Projects <ArrowRight className="w-4 h-4" />
+      {/* Mobile Menu Overlay - Light */}
+      <div className={`fixed inset-0 bg-white z-40 transition-transform duration-700 ease-in-out md:hidden ${menuOpen ? 'translate-y-0' : '-translate-y-full'}`}>
+        <div className="h-full flex flex-col justify-center items-center gap-8 pt-20">
+          {navLinks.map((item, i) => (
+            <a 
+              key={item.name}
+              href={item.href}
+              onClick={() => setMenuOpen(false)}
+              className="text-5xl font-bold tracking-tighter text-neutral-900 hover:text-blue-600 transition-colors"
+              style={{ transitionDelay: menuOpen ? `${i * 50}ms` : '0ms' }}
+            >
+              {item.name}
             </a>
+          ))}
+        </div>
+      </div>
+
+      {/* Hero Section - Light */}
+      <section className="min-h-screen flex flex-col justify-center px-6 md:px-12 pt-20 pb-12 relative">
+        <div className="max-w-7xl mx-auto w-full relative z-10">
+          <RevealText delay={0.2}>
+            <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter leading-none mb-4 text-neutral-900">
+              Digital
+            </h1>
+          </RevealText>
+          
+          <RevealText delay={0.3}>
+            <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter leading-none mb-4 text-transparent stroke-text-light">
+              Excellence
+            </h1>
+          </RevealText>
+          
+          <RevealText delay={0.4}>
+            <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter leading-none text-blue-600 mb-12">
+              Agency
+            </h1>
+          </RevealText>
+          
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 mt-12">
+            <RevealText delay={0.5}>
+              <p className="max-w-md text-lg text-neutral-600 leading-relaxed">
+                We are DevNexa, a creative technology studio crafting digital experiences that merge art with functionality. Based in Lahore, working globally.
+              </p>
+            </RevealText>
+            
+            <RevealText delay={0.6}>
+              <div className="flex items-center gap-2 text-sm tracking-widest uppercase text-neutral-500">
+                <span>Scroll to explore</span>
+                <ArrowDown className="w-4 h-4 animate-bounce" />
+              </div>
+            </RevealText>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 relative overflow-hidden cta-section">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-700"></div>
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '40px 40px' }}></div>
-        <div className="max-w-4xl mx-auto px-4 relative z-10 text-center cta-content">
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Ready to Transform Your Vision?</h2>
-          <p className="text-blue-100 text-lg mb-10">
-            Join the hundreds of businesses that have scaled their digital presence with devnexa.
-          </p>
-          <a href="#contact" className="inline-block bg-white text-blue-600 px-10 py-4 rounded-full font-bold text-lg hover:bg-blue-50 transition-all shadow-2xl hover:scale-105">
-            Schedule a Consultation
-          </a>
+      {/* Divider */}
+      <div className="px-6 md:px-12 py-12 relative z-10">
+        <div className="h-px bg-neutral-200 w-full" />
+      </div>
+
+      {/* Introduction */}
+      <section id="about" className="px-6 md:px-12 py-24 md:py-32 relative z-10">
+        <div className="max-w-5xl mx-auto">
+          <RevealText>
+            <p className="text-3xl md:text-5xl lg:text-6xl font-medium leading-tight tracking-tight text-neutral-600">
+              We're the founder & creative directors at <span className="text-neutral-900 font-semibold">DevNexa</span>, a studio that builds and runs its own digital products – and occasionally works with partners such as <span className="text-blue-600 font-semibold">NASA</span> and <span className="text-green-600 font-semibold">Fortune 500</span> brands to transform their digital presence.
+            </p>
+          </RevealText>
+        </div>
+      </section>
+
+      {/* Work Section */}
+      <section id="work" className="py-12 relative z-10">
+        <div className="px-6 md:px-12 mb-12 flex justify-between items-end">
+          <RevealText>
+            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter text-neutral-900">Selected Work</h2>
+          </RevealText>
+          <span className="text-neutral-500 tracking-widest text-sm">(2023—2024)</span>
+        </div>
+
+        <div className="h-px bg-neutral-200 mx-6 md:mx-12 mb-24" />
+
+        <div className="px-6 md:px-12 mb-16 flex gap-4 flex-wrap">
+          {['all', 'web', 'app', 'branding'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-6 py-2 rounded-full text-sm font-medium tracking-wider uppercase transition-all border ${
+                activeTab === tab 
+                  ? 'bg-neutral-900 text-white border-neutral-900' 
+                  : 'bg-transparent text-neutral-600 border-neutral-300 hover:border-neutral-900 hover:text-neutral-900'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        <div className="px-6 md:px-12">
+          {filteredPortfolio.map((project, index) => (
+            <ProjectCard key={project.id} project={project} index={index} onClick={scrollToContact} />
+          ))}
+        </div>
+      </section>
+
+      {/* Services Marquee - Light */}
+      <section id="services" className="py-24 overflow-hidden border-y border-neutral-200 my-24 relative z-10 bg-neutral-50">
+        <div className="flex whitespace-nowrap">
+          <div className="flex gap-12 text-6xl md:text-8xl font-bold tracking-tighter text-neutral-200 animate-marquee">
+            <span>Web Development</span>
+            <span className="text-neutral-300">•</span>
+            <span>Mobile Apps</span>
+            <span className="text-neutral-300">•</span>
+            <span>Brand Identity</span>
+            <span className="text-neutral-300">•</span>
+            <span>AI Solutions</span>
+            <span className="text-neutral-300">•</span>
+            <span>Web Development</span>
+            <span className="text-neutral-300">•</span>
+            <span>Mobile Apps</span>
+            <span className="text-neutral-300">•</span>
+          </div>
         </div>
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-24 relative contact-section">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="contact" className="px-6 md:px-12 py-32 md:py-48 relative z-10">
+        <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            <div className="contact-info">
-              <h3 className="text-blue-500 font-bold uppercase tracking-wider mb-2">Get In Touch</h3>
-              <h2 className="text-4xl font-bold text-slate-900 mb-6">Let's Build Something <br/>Amazing Together</h2>
-              <p className="text-slate-600 mb-8">
-                Have an idea? We would love to hear about it. Fill out the form and our team will get back to you within 24 hours.
-              </p>
+            <div>
+              <RevealText>
+                <h2 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-8 text-neutral-900">
+                  Let's work<br />
+                  <span className="text-blue-600">together</span>
+                </h2>
+              </RevealText>
               
-              <div className="space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
-                    <Mail className="w-5 h-5" />
+              <RevealText>
+                <p className="text-xl text-neutral-600 mb-8 max-w-md">
+                  Have a project in mind? We'd love to hear about it. Get in touch and let's create something extraordinary.
+                </p>
+              </RevealText>
+              
+              <div className="space-y-4">
+                <RevealText>
+                  <a href="mailto:hello@devnexa.dev" className="flex items-center gap-4 text-neutral-600 hover:text-neutral-900 transition-colors group">
+                    <Mail className="w-5 h-5 text-blue-600" />
+                    <span className="text-lg">hello@devnexa.dev</span>
+                  </a>
+                </RevealText>
+                <RevealText>
+                  <a href="tel:+923003386392" className="flex items-center gap-4 text-neutral-600 hover:text-neutral-900 transition-colors group">
+                    <Smartphone className="w-5 h-5 text-green-600" />
+                    <span className="text-lg">+92 300 3386392</span>
+                  </a>
+                </RevealText>
+                <RevealText>
+                  <div className="flex items-center gap-4 text-neutral-600">
+                    <Globe className="w-5 h-5 text-neutral-400" />
+                    <span className="text-lg">DHA Phase 2, Lahore</span>
                   </div>
-                  <div>
-                    <div className="text-slate-900 font-medium">Email Us</div>
-                    <div className="text-slate-500">hello@devnexa.dev</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
-                    <Smartphone className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-slate-900 font-medium">Call Us</div>
-                    <div className="text-slate-500">+92 300 3386392</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
-                    <Globe className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-slate-900 font-medium">Visit Us</div>
-                    <div className="text-slate-500">DHA Phase 2, Lahore</div>
-                  </div>
-                </div>
+                </RevealText>
               </div>
 
-              <div className="flex gap-4 mt-10">
-                <a href="#" className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-blue-500 hover:text-white transition-all hover:scale-110">
-                  <Twitter className="w-5 h-5"/>
-                </a>
-                <a href="https://www.linkedin.com/company/99885845/" className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-blue-500 hover:text-white transition-all hover:scale-110">
-                  <Linkedin className="w-5 h-5"/>
-                </a>
-                <a href="#" className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-800 hover:text-white transition-all hover:scale-110">
-                  <Github className="w-5 h-5"/>
-                </a>
+              <div className="flex gap-6 mt-12">
+                {['Twitter', 'LinkedIn', 'GitHub'].map((social, i) => (
+                  <RevealText key={social} delay={i * 0.1}>
+                    <a href="#" className="text-sm tracking-widest uppercase text-neutral-500 hover:text-neutral-900 transition-colors border-b border-transparent hover:border-neutral-900 pb-1">
+                      {social}
+                    </a>
+                  </RevealText>
+                ))}
               </div>
             </div>
 
-            <form
-              ref={form}
-              onSubmit={sendEmail}
-              className="contact-form bg-white p-8 rounded-2xl shadow-xl border border-slate-100"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="block text-slate-600 mb-2 text-sm font-medium">Name</label>
-                  <input
-                    type="text"
-                    name="user_name"
-                    required
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3.5 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
-                    placeholder="John Doe"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-600 mb-2 text-sm font-medium">Email</label>
-                  <input
-                    type="email"
-                    name="user_email"
-                    required
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3.5 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
-                    placeholder="john@example.com"
-                  />
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-slate-600 mb-2 text-sm font-medium">Subject</label>
-                <select
-                  name="subject"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3.5 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all"
-                >
-                  <option>Web Development</option>
-                  <option>Mobile App</option>
-                  <option>Branding</option>
-                  <option>Other</option>
-                </select>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-slate-600 mb-2 text-sm font-medium">Message</label>
-                <textarea
-                  rows="4"
-                  name="message"
-                  required
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3.5 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all resize-none"
-                  placeholder="Tell us about your project..."
-                ></textarea>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold py-4 rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50" 
+            <div className="lg:pt-24">
+              <form
+                ref={formRef}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  alert('Message sent! We will get back to you soon.');
+                  formRef.current.reset();
+                }}
+                className="space-y-8"
               >
-                Send Message
-              </button>
-            </form>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="group">
+                    <label className="block text-neutral-500 mb-2 text-sm tracking-wider uppercase">Name</label>
+                    <input
+                      type="text"
+                      name="user_name"
+                      required
+                      className="w-full bg-transparent border-b border-neutral-300 py-3 text-neutral-900 focus:border-blue-600 focus:outline-none transition-colors placeholder:text-neutral-400"
+                      placeholder="John Doe"
+                    />
+                  </div>
+
+                  <div className="group">
+                    <label className="block text-neutral-500 mb-2 text-sm tracking-wider uppercase">Email</label>
+                    <input
+                      type="email"
+                      name="user_email"
+                      required
+                      className="w-full bg-transparent border-b border-neutral-300 py-3 text-neutral-900 focus:border-blue-600 focus:outline-none transition-colors placeholder:text-neutral-400"
+                      placeholder="john@example.com"
+                    />
+                  </div>
+                </div>
+
+                <div className="group">
+                  <label className="block text-neutral-500 mb-2 text-sm tracking-wider uppercase">Subject</label>
+                  <select
+                    name="subject"
+                    className="w-full bg-transparent border-b border-neutral-300 py-3 text-neutral-900 focus:border-blue-600 focus:outline-none transition-colors cursor-pointer"
+                  >
+                    <option className="bg-white text-neutral-900">Web Development</option>
+                    <option className="bg-white text-neutral-900">Mobile App</option>
+                    <option className="bg-white text-neutral-900">Branding</option>
+                    <option className="bg-white text-neutral-900">Other</option>
+                  </select>
+                </div>
+
+                <div className="group">
+                  <label className="block text-neutral-500 mb-2 text-sm tracking-wider uppercase">Message</label>
+                  <textarea
+                    rows="4"
+                    name="message"
+                    required
+                    className="w-full bg-transparent border-b border-neutral-300 py-3 text-neutral-900 focus:border-blue-600 focus:outline-none transition-colors resize-none placeholder:text-neutral-400"
+                    placeholder="Tell us about your project..."
+                  ></textarea>
+                </div>
+
+                <button
+                  type="submit"
+                  className="group flex items-center gap-3 text-neutral-900 border border-neutral-900 px-8 py-4 rounded-full hover:bg-neutral-900 hover:text-white transition-all duration-300 mt-8" 
+                >
+                  Send Message
+                  <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 py-12 text-slate-400 text-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Zap className="text-blue-500 w-5 h-5" />
-            <span className="font-bold text-white">devnexa &copy; 2024</span>
-          </div>
-          <div className="flex gap-8">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-white transition-colors">Cookies</a>
-          </div>
+      <footer className="px-6 md:px-12 py-12 border-t border-neutral-200 relative z-10 bg-neutral-50">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-neutral-500 text-sm tracking-wider">
+          <p>© 2024 DevNexa. All rights reserved.</p>
+          <p>Designed & Built with passion</p>
         </div>
       </footer>
 
-      {/* Global Styles */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
-        html {
-          scroll-behavior: auto; /* Lenis handles this */
+        .stroke-text-light {
+          -webkit-text-stroke: 2px #171717;
+          -webkit-text-fill-color: transparent;
         }
-
-        body {
-          font-family: 'Inter', sans-serif;
+        @media (min-width: 768px) {
+          .stroke-text-light {
+            -webkit-text-stroke: 3px #171717;
+          }
         }
-
-        /* 3D Perspective utilities */
-        .perspective-1000 {
-          perspective: 1000px;
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
-
-        .transform-gpu {
-          transform: translateZ(0);
-          backface-visibility: hidden;
+        .animate-marquee {
+          animation: marquee 30s linear infinite;
         }
-
-        .translate-z-10 {
-          transform: translateZ(10px);
+        @media (min-width: 768px) {
+          * {
+            cursor: none !important;
+          }
         }
-
-        /* Smooth scrollbar */
-        ::-webkit-scrollbar {
-          width: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-          background: #f1f5f9;
-        }
-
-        ::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #3B82F6, #10B981);
-          border-radius: 6px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #2563EB, #059669);
-        }
-
-        /* Selection */
         ::selection {
-          background: rgba(59, 130, 246, 0.3);
+          background: #2563EB;
+          color: #fff;
         }
-
-        /* Animation classes */
-        .animate-fade-in-down {
-          animation: fadeInDown 0.3s ease-out forwards;
+        ::-webkit-scrollbar {
+          width: 8px;
         }
-
-        @keyframes fadeInDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+        ::-webkit-scrollbar-track {
+          background: #f5f5f5;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #ccc;
+          border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #2563EB;
+        }
+        html {
+          background-color: #fff;
+        }
+        body {
+          background-color: #fff;
+          color: #171717;
         }
       `}</style>
     </div>
